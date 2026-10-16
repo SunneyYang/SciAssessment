@@ -101,6 +101,9 @@ button.btn.primary{background:var(--ink);color:var(--sheet)}
 button.btn:hover{border-color:var(--blue)}
 aside{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;min-width:0;max-height:calc(100vh - 32px);overflow:auto;padding-bottom:4px}
 @media (max-width:900px){aside{position:static;max-height:none;overflow:visible}}
+.ready{border:1px solid var(--ok);border-left:5px solid var(--ok);background:var(--sheet);border-radius:6px;padding:10px 14px;font-size:14px;line-height:1.6}
+.ready b{color:var(--ok)}
+button.btn.glow{box-shadow:0 0 0 3px var(--ok)}
 .missing{border:1px solid var(--pen);background:var(--pen-wash);color:var(--ink);border-radius:6px;padding:10px 14px;font-size:13.5px}
 .missing b{color:var(--pen)}
 .missing ul{margin:4px 0 0;padding-left:20px}
@@ -128,7 +131,7 @@ footer .code{font-family:var(--f-code)}
   <div class="modes" role="radiogroup" aria-label="選擇模式">
     <label class="mode"><input type="radio" name="mode" id="m_gen" value="gen" data-k="mode"><span class="card"><span class="nm">出題</span><span class="ds">我想從課綱條目開始，設計新的素養題</span></span></label>
     <label class="mode"><input type="radio" name="mode" id="m_fix" value="fix" data-k="mode"><span class="card"><span class="nm">改題</span><span class="ds">我手上有舊題目，想改成素養題</span></span></label>
-    <label class="mode"><input type="radio" name="mode" id="m_ana" value="ana" data-k="mode"><span class="card"><span class="nm">析卷</span><span class="ds">我已經命好一份試卷，想檢查它的品質</span></span></label>
+    <label class="mode"><input type="radio" name="mode" id="m_ana" value="ana" data-k="mode"><span class="card"><span class="nm">試卷分析</span><span class="ds">我已經命好一份試卷，想檢查它的品質</span></span></label>
   </div>
 
   <p class="modeNote" id="modeNote"></p>
@@ -216,7 +219,7 @@ footer .code{font-family:var(--f-code)}
             </select>
           </label>
         </div>
-        <span class="hint">配分由 AI 依題型和認知層次建議，您再自行調整。多題時至少會有一題高層次。</span>
+        <span class="hint">多題時至少會有一題高層次。這個階段只出題，配分等組成試卷時再決定。</span>
       </fieldset>
       <fieldset data-modes="gen">
         <legend>情境偏好<span class="rq opt">選填</span></legend>
@@ -300,13 +303,14 @@ footer .code{font-family:var(--f-code)}
 
     <aside aria-label="產生的提示詞" id="aside">
       <div class="missing" id="missing" hidden></div>
+      <div class="ready" id="ready" role="status" hidden></div>
       <div id="sheets"></div>
     </aside>
   </div>
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.2.4</span> · 2026-10-15</span>
+    <span>版本 <span class="code">v0.2.5</span> · 2026-10-15</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -418,8 +422,8 @@ function applyMode(){
   document.querySelectorAll(".q-hide").forEach(el=>{if(qf)el.hidden=true;else if(!el.dataset.modes)el.hidden=false});
   $("wayHint").textContent=qf?"只要貼上題目，產生一段提示詞，AI 直接給改好的題目。想知道原題問題出在哪裡、自己選擇改寫方向，請用完整流程。":"分三段：AI 先診斷並提出改寫方向，由您選擇後再改寫，最後審題。";
   document.querySelectorAll("[data-req]").forEach(el=>{const map=Object.fromEntries(el.dataset.req.split(",").map(x=>x.split(":")));el.textContent=map[m];el.className="rq "+(map[m]==="必填"?"req":"opt")});
-  $("modeNote").textContent={gen:"出題：從課綱條目開始，設計新的素養題",fix:"改題：把手上的舊題目改成素養題",ana:"析卷：檢查一份命好的試卷"}[m];
-  $("modeSec").textContent={gen:"出題設定",fix:"改題設定",ana:"析卷設定"}[m];
+  $("modeNote").textContent={gen:"出題：從課綱條目開始，設計新的素養題",fix:"改題：把手上的舊題目改成素養題",ana:"試卷分析：檢查一份命好的試卷"}[m];
+  $("modeSec").textContent={gen:"出題設定",fix:"改題設定",ana:"試卷分析設定"}[m];
   $("how").innerHTML=(qf?["<b>1</b> 複製提示詞貼到 AI，直接得到改寫後的題目","<b>2</b> 不滿意可以直接請 AI 再改，或改用完整流程"]:HOW[m]).map(x=>"<li>"+x+"</li>").join("");
   $("unitLab").textContent=m==="ana"?"考試範圍（單元名稱）":"單元名稱";
   $("unitHint").hidden=m!=="ana";
@@ -472,8 +476,7 @@ function principles(){
 function cogRule(){
   return `【雙向細目表規範（臺北市國小自然領域格式）】
 - 認知層次分三類：記憶、了解、高層次（應用、分析、評鑑、創作），依 Bloom 認知領域教育目標分類修訂版。
-- 每題標註認知層次並附一句理由；標為高層次的題目，要說明學生需要應用或分析什麼。
-- 一份試卷一定要有高層次題目，建議配分 10–20 分。`;
+- 每題標註認知層次並附一句理由；標為高層次的題目，要說明學生需要應用或分析什麼。`;
 }
 function baseSettings(){
   const s=[`- 年級：${gradeName()}（${stageName()}）`];
@@ -541,13 +544,12 @@ ${types}
 ・正確答案
 ・解析：學生需要用到情境中的哪些資訊、哪個概念
 ・認知層次與一句判斷理由
-・建議配分（以一份 100 分試卷中的比重估算，供我調整）
 
 ${cogRule()}
 
 【最後用表格整理】
-題號｜題型｜單元｜學習內容代碼｜學習表現代碼｜認知層次｜建議配分｜可診斷的迷思概念｜答案
-表格下方列出記憶、了解、高層次的配分小計。`+summary("各題題號、題型、認知層次與答案")+`
+題號｜題型｜單元｜學習內容代碼｜學習表現代碼｜認知層次｜可診斷的迷思概念｜答案
+表格下方列出記憶、了解、高層次各有幾題。這個階段只出題，不要配分。`+summary("各題題號、題型、認知層次與答案")+`
 請在這裡結束回覆，等我要求審題。`;
 
   const p3=`第三階段：審題。請以審題委員的角度檢查剛才的題目。先不要改寫，只提出問題與建議。
@@ -751,11 +753,16 @@ function build(){
   if(m==="ana"&&!st.ana.paper.trim())miss.push("試卷內容");
   const box=$("missing");
   if(miss.length){box.hidden=false;box.innerHTML="<b>還需要填寫：</b><ul>"+miss.map(x=>"<li>"+x+"</li>").join("")+"</ul>"}else box.hidden=true;
+  const okGen=m==="gen"&&!miss.length, rd=$("ready");
+  rd.hidden=!okGen;
+  if(okGen)rd.innerHTML="<b>必填內容已完成！</b>請按下方第 1 段提示詞的「複製」，貼到您要使用的 AI（ChatGPT、Gemini 或 Claude）的新對話中。AI 回覆後，再依序使用第 2、3 段。";
+  $("jumpBtn").textContent=okGen?"必填完成，複製第 1 段 ↓":"看提示詞 ↓";
 
   const sheets=m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
   let i=0;
   $("sheets").innerHTML=sheets.map(s=>{const no=s.n||String(++i);
     return `<section class="sheet" style="margin-bottom:14px"><div class="sheet-h"><span class="num">${no}</span><div class="grow"><h2>${s.t}</h2><p>${s.d}</p></div><button type="button" class="btn primary" data-copy="${no}">複製</button></div><pre id="p_${no}">${esc(s.x).split(B).join('<span class="blank">'+B+'</span>')}</pre></section>`}).join("");
+  if(okGen){const c1=document.querySelector('[data-copy="1"]');if(c1)c1.classList.add("glow")}
   deidCheck(st.fix.orig,"deidFix");deidCheck(st.ana.paper,"deidAna");
   
 }
