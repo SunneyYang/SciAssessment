@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>素養命題提示詞產生器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;800&family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: answer-sheet paper. Mode tabs on top, form left like a test blueprint, prompt "sheets" right; stacks on phone. Red pen marks what is required. */
+:root{
+  --paper:#fbfcfe; --sheet:#ffffff; --rule:#dbe4f0; --ink:#1d2b45; --ink-soft:#5a6884;
+  --blue:#2a5bb8; --blue-wash:#e8effb; --pen:#c8322b; --pen-wash:#fbe9e7; --ok:#1f7a4d; --warn:#9a6200; --warn-wash:#fdf3dc;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-code:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#121826; --sheet:#182133; --rule:#2a3650; --ink:#e3e9f5; --ink-soft:#9aa8c3;
+  --blue:#7ea6f2; --blue-wash:#1f2c48; --pen:#f0776f; --pen-wash:#3a2124; --ok:#5fc795; --warn:#f0c060; --warn-wash:#3a301a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#121826; --sheet:#182133; --rule:#2a3650; --ink:#e3e9f5; --ink-soft:#9aa8c3;
+  --blue:#7ea6f2; --blue-wash:#1f2c48; --pen:#f0776f; --pen-wash:#3a2124; --ok:#5fc795; --warn:#f0c060; --warn-wash:#3a301a; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+form[data-mode=fix] .s-top,form[data-mode=ana] .s-top{order:-4}
+form[data-mode=fix] .s-mode,form[data-mode=fix] fieldset[data-modes="fix"],form[data-mode=ana] .s-mode,form[data-mode=ana] fieldset[data-modes="ana"]{order:-3}
+.s-more{order:-2}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;
+  margin:0;padding:28px 16px 80px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-direction:column;gap:6px;border-bottom:2px solid var(--ink);padding-bottom:14px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--ink-soft)}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4vw,36px);line-height:1.25;margin:0;text-wrap:balance}
+.lede{margin:0;color:var(--ink-soft);max-width:66ch}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.modes{gap:8px}.mode .card{padding:10px 8px;align-items:center;text-align:center}.mode input:checked+.card{padding:9px 7px}.mode .ds{display:none}.mode .nm{font-size:18px}}
+@media (max-width:900px){input[type=text],input[type=number],input[type=search],textarea,select{font-size:16px}}
+.jump{display:none}
+@media (max-width:900px){.jump{display:inline-flex;position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;align-items:center;gap:6px;font:inherit;font-size:15px;font-weight:700;background:var(--pen);color:#fff;border:0;border-radius:999px;padding:12px 18px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}.jump[hidden]{display:none}}
+.modeNote{display:none;font-size:13.5px;color:var(--ink-soft);margin:-8px 0 0}
+@media (max-width:700px){.modeNote{display:block}}
+.mode{position:relative;display:block;cursor:pointer}
+.mode input{position:absolute;opacity:0;inset:0}
+.mode .card{display:flex;flex-direction:column;gap:2px;border:1px solid var(--rule);border-radius:6px;background:var(--sheet);padding:12px 14px;height:100%}
+.mode .nm{font-family:var(--f-display);font-weight:800;font-size:20px}
+.mode .ds{font-size:13.5px;color:var(--ink-soft)}
+.mode input:checked+.card{border:2px solid var(--blue);background:var(--blue-wash);padding:11px 13px}
+.mode input:checked+.card .nm{color:var(--blue)}
+.mode input:focus-visible+.card{outline:2px solid var(--blue);outline-offset:2px}
+.how{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--ink-soft);margin:0;padding:0;list-style:none}
+.how b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+form{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sec{font-size:12.5px;letter-spacing:.1em;color:var(--ink-soft);font-weight:700;margin:6px 0 -6px;display:flex;align-items:center;gap:10px}
+.sec::after{content:"";flex:1;border-top:1px dashed var(--rule)}
+fieldset{border:1px solid var(--rule);background:var(--sheet);border-radius:6px;margin:0;padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+legend{font-family:var(--f-display);font-weight:600;font-size:17px;padding:0 6px}
+.rq{font-family:var(--f-body);font-size:12px;font-weight:700;margin-left:6px;letter-spacing:.04em}
+.rq.req{color:var(--pen)} .rq.opt{color:var(--ink-soft);font-weight:500}
+label.lab{font-weight:500;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.hint{font-size:12.5px;color:var(--ink-soft);font-weight:400}
+.hint.strong{color:var(--blue);font-weight:500}
+input[type=text],input[type=number],input[type=search],textarea,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;width:100%}
+textarea{min-height:76px;resize:vertical}
+textarea.big{min-height:200px;font-size:14px}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,.chip input:focus-visible+span,.item input:focus-visible+span{outline:2px solid var(--blue);outline-offset:2px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;inset:0}
+.chip span{display:inline-block;border:1px solid var(--rule);border-radius:999px;padding:5px 14px;cursor:pointer;font-size:14px;background:var(--paper)}
+.chip input:checked+span{background:var(--blue);border-color:var(--blue);color:var(--sheet);font-weight:500}
+.picker{border:1px solid var(--rule);border-radius:4px;max-height:320px;overflow:auto;background:var(--paper)}
+.grp{padding:8px 10px 4px}
+.grp h3{margin:4px 0 6px;font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.06em;position:sticky;top:0;background:var(--paper);padding:2px 0}
+.item{display:flex;gap:10px;align-items:flex-start;padding:6px 6px;border-radius:4px;cursor:pointer}
+.item:hover{background:var(--blue-wash)}
+.item input{margin-top:5px;accent-color:var(--blue);flex:none}
+.item .code{font-family:var(--f-code);font-size:12.5px;color:var(--blue);white-space:nowrap;flex:none;min-width:84px}
+.item .txt{font-size:13.5px;min-width:0}
+.item.note .txt::after{content:"（較難以紙筆評量）";color:var(--ink-soft);font-size:12px}
+.sel{display:flex;flex-wrap:wrap;gap:6px;min-height:8px}
+.tag{font-family:var(--f-code);font-size:12px;background:var(--blue-wash);color:var(--blue);border-radius:3px;padding:2px 8px;display:inline-flex;gap:6px;align-items:center}
+.tag button{border:0;background:none;color:inherit;cursor:pointer;padding:0;font-size:13px;line-height:1}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:500;background:var(--blue-wash);border-radius:4px;padding:8px 10px;cursor:pointer}
+.check input{accent-color:var(--blue);margin-top:5px;flex:none}
+.empty{padding:16px;color:var(--ink-soft);font-size:13.5px}
+.deid{border-left:3px solid var(--warn);background:var(--warn-wash);border-radius:0 4px 4px 0;padding:8px 12px;font-size:13px}
+.deid b{color:var(--warn)}
+.deid ul{margin:4px 0 0;padding-left:20px}
+.alert{border:1px solid var(--warn);background:var(--warn-wash);border-radius:4px;padding:8px 12px;font-size:13px}
+.alert b{color:var(--warn)}
+details{font-size:13px;color:var(--ink-soft)}
+details summary{cursor:pointer;color:var(--blue);font-weight:500}
+details ul{margin:6px 0 0;padding-left:20px}
+.banner{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;border:1px dashed var(--blue);background:var(--blue-wash);border-radius:6px;padding:10px 14px;font-size:13.5px}
+button.btn{font:inherit;font-size:14px;font-weight:500;border-radius:4px;padding:7px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--sheet);color:var(--ink);flex:none}
+button.btn.primary{background:var(--ink);color:var(--sheet)}
+button.btn:hover{border-color:var(--blue)}
+aside{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;min-width:0;max-height:calc(100vh - 32px);overflow:auto;padding-bottom:4px}
+@media (max-width:900px){aside{position:static;max-height:none;overflow:visible}}
+.missing{border:1px solid var(--pen);background:var(--pen-wash);color:var(--ink);border-radius:6px;padding:10px 14px;font-size:13.5px}
+.missing b{color:var(--pen)}
+.missing ul{margin:4px 0 0;padding-left:20px}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;overflow:hidden;min-width:0;flex:none}
+.sheet-h{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--rule)}
+.num{font-family:var(--f-display);font-weight:800;font-size:20px;color:var(--pen);min-width:28px;flex:none;text-align:center}
+.sheet-h h2{margin:0;font-size:16px;font-weight:700;line-height:1.3}
+.sheet-h p{margin:2px 0 0;font-size:12.5px;color:var(--ink-soft)}
+.sheet-h .grow{flex:1;min-width:0}
+pre{margin:0;padding:14px 16px;font-family:var(--f-body);font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto;background:var(--paper)}
+pre .blank{color:var(--pen);font-weight:700}
+footer{border-top:1px solid var(--rule);padding-top:12px;font-size:12.5px;color:var(--ink-soft);display:flex;flex-direction:column;gap:4px}
+footer .code{font-family:var(--f-code)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">國小自然科學 · 素養導向紙筆命題</span>
+    <h1>素養命題提示詞產生器</h1>
+    <p class="lede">選擇要做的事、填好設定，頁面會產生分段提示詞。依序貼到 ChatGPT、Gemini 或 Claude 的同一個對話中，AI 每完成一個階段就會停下來，等您判斷後再繼續。本頁不連接任何 AI，也不會儲存您填寫的內容，重新整理或關閉頁面後就會回到空白。</p>
+  </header>
+
+  <div class="modes" role="radiogroup" aria-label="選擇模式">
+    <label class="mode"><input type="radio" name="mode" id="m_gen" value="gen" data-k="mode"><span class="card"><span class="nm">出題</span><span class="ds">我想從課綱條目開始，設計新的素養題</span></span></label>
+    <label class="mode"><input type="radio" name="mode" id="m_fix" value="fix" data-k="mode"><span class="card"><span class="nm">改題</span><span class="ds">我手上有舊題目，想改成素養題</span></span></label>
+    <label class="mode"><input type="radio" name="mode" id="m_ana" value="ana" data-k="mode"><span class="card"><span class="nm">析卷</span><span class="ds">我已經命好一份試卷，想檢查它的品質</span></span></label>
+  </div>
+
+  <p class="modeNote" id="modeNote"></p>
+  <ul class="how" id="how"></ul>
+
+  <div class="banner" id="exampleBanner">
+    <span id="bannerText"></span>
+    <span class="chips"><button type="button" class="btn" id="exampleBtn">載入範例</button><button type="button" class="btn" id="clearBtn">全部清空</button></span>
+  </div>
+
+  <div class="grid">
+    <form id="f" novalidate autocomplete="off">
+      <div class="sec s-top">共用設定</div>
+
+      <fieldset class="s-top">
+        <legend>年級與模式<span class="rq req">必填</span></legend>
+        <div class="chips" id="grades"></div>
+        <span class="hint">三、四年級對應第二學習階段（Ⅱ），五、六年級對應第三學習階段（Ⅲ）。更換階段時，已選的課綱條目會清除。</span>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="level" id="lv_lite" value="lite" data-k="level"><span>精簡模式</span></label>
+          <label class="chip"><input type="radio" name="level" id="lv_full" value="full" data-k="level"><span>完整模式</span></label>
+        </div>
+        <span class="hint">使用免費版 AI 建議選精簡模式：提示詞與輸出較短，並在每個階段產生「接續摘要」，額度用完時可帶著摘要開新對話或換工具繼續。</span>
+      </fieldset>
+
+      <fieldset class="q-hide">
+        <legend id="bookLegend">教科書與單元<span class="rq" data-req="gen:選填,fix:選填,ana:選填"></span></legend>
+        <div class="row">
+          <label class="lab" for="publisher">版本
+            <select id="publisher" data-k="publisher">
+              <option value="">未指定</option><option>康軒</option><option>南一</option><option>翰林</option><option value="其他">其他／自編</option>
+            </select>
+          </label>
+          <label class="lab" for="unit"><span id="unitLab">單元名稱</span>
+            <input type="text" id="unit" data-k="unit" placeholder="例：熱的傳播">
+          </label>
+        </div>
+        <span class="hint strong" id="unitHint" hidden>建議填寫考試範圍的單元名稱，多個單元用頓號分隔，分析會更準確。沒填時，AI 會先推斷單元請您確認。</span>
+        <label class="lab" for="activity" data-modes="gen fix">本單元重要實驗或活動
+          <span class="hint">簡短描述學生做過的實驗。AI 會以這段描述為準，不會自行猜測教科書內容。</span>
+          <textarea id="activity" data-k="activity" placeholder="例：在金屬棒貼感溫貼紙，從一端加熱，觀察顏色變化的順序。"></textarea>
+        </label>
+      </fieldset>
+
+      <fieldset class="q-hide">
+        <legend>學習內容<span class="rq" data-req="gen:必填,fix:選填,ana:選填"></span></legend>
+        <span class="hint" data-modes="fix">沒選時，AI 會從原題推斷對應的條目，再請您確認。</span>
+        <span class="hint" data-modes="ana">沒選時，AI 會從試卷反推。</span>
+        <input type="search" id="lcSearch" placeholder="搜尋條目，例如：熱、磁、酸鹼、INe" aria-label="搜尋學習內容">
+        <div class="picker" id="lcPicker"></div>
+        <div class="sel" id="lcSel" aria-live="polite"></div>
+      </fieldset>
+
+      <fieldset class="q-hide">
+        <legend>學習表現<span class="rq" data-req="gen:必填,fix:選填,ana:選填"></span></legend>
+        <label class="check" for="aiSuggest" data-modes="gen"><input type="checkbox" id="aiSuggest" data-k="aiSuggest"> 不確定要選哪一條，請 AI 從本階段條目中建議</label>
+        <div class="picker" id="lpPicker"></div>
+        <div class="sel" id="lpSel" aria-live="polite"></div>
+      </fieldset>
+
+      <fieldset class="q-hide">
+        <legend>學生的迷思概念<span class="rq opt">選填</span></legend>
+        <label class="lab" for="miscon">依您的教學經驗，寫下學生常出現的錯誤想法
+          <span class="hint" id="misHint">用學生的想法來描述，一行一個。</span>
+          <textarea id="miscon" data-k="miscon" placeholder="例：學生以為冰塊會把「冷」傳到手上"></textarea>
+        </label>
+      </fieldset>
+
+      <div class="sec s-more q-hide" data-modes="fix ana">其他設定（選填，填寫可讓 AI 判斷更準確）</div>
+      <div class="sec s-mode" id="modeSec">出題設定</div>
+
+      <!-- 出題 -->
+      <fieldset data-modes="gen">
+        <legend>題型、題數與認知層次<span class="rq req">必填</span></legend>
+        <div class="chips" id="types"></div>
+        <div class="row">
+          <label class="lab" for="count"><span id="countLab">題數</span>
+            <input type="number" id="count" data-k="gen.count" min="1" max="10">
+          </label>
+          <label class="lab" for="dist">認知層次分布
+            <select id="dist" data-k="gen.dist">
+              <option>以了解為主，含一題高層次</option>
+              <option>記憶、了解、高層次均衡</option>
+              <option>高層次為主</option>
+            </select>
+          </label>
+        </div>
+        <span class="hint">配分由 AI 依題型和認知層次建議，您再自行調整。多題時至少會有一題高層次。</span>
+      </fieldset>
+      <fieldset data-modes="gen">
+        <legend>情境偏好<span class="rq opt">選填</span></legend>
+        <label class="lab" for="context">希望情境貼近哪些場域
+          <input type="text" id="context" data-k="gen.context" placeholder="例：學校營養午餐、家中廚房">
+        </label>
+      </fieldset>
+
+      <!-- 改題 -->
+      <fieldset data-modes="fix">
+        <legend>改題方式<span class="rq req">必填</span></legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="way" id="wy_q" value="quick" data-k="fix.way"><span>快速改題</span></label>
+          <label class="chip"><input type="radio" name="way" id="wy_f" value="full" data-k="fix.way"><span>完整流程</span></label>
+        </div>
+        <span class="hint" id="wayHint"></span>
+      </fieldset>
+      <fieldset data-modes="fix">
+        <legend>原題<span class="rq req">必填</span></legend>
+        <div class="deid"><b>貼上前請先去識別化：</b>刪除校名、行政區、命題與審題教師姓名、學生姓名與班級座號。免費版 AI 輸入的內容可能被用於模型訓練。</div>
+        <label class="lab" for="orig"><span id="origLab">題目文字（含選項）</span>
+          <textarea id="orig" class="big" data-k="fix.orig" placeholder="貼上題目。圖片請直接上傳到 AI 對話中。"></textarea>
+        </label>
+        <div class="alert" id="deidFix" hidden></div>
+        <div class="row">
+          <label class="lab" for="ans">原題答案<span class="hint">選填，有答案 AI 比較不會誤判題意</span>
+            <input type="text" id="ans" data-k="fix.ans" placeholder="例：①">
+          </label>
+          <label class="lab" for="concept">這題想測的概念<span class="hint">選填，沒填由 AI 推論</span>
+            <input type="text" id="concept" data-k="fix.concept" placeholder="例：辨認熱的傳導">
+          </label>
+        </div>
+      </fieldset>
+      <fieldset data-modes="fix" class="q-hide">
+        <legend>改寫幅度<span class="rq req">必填</span></legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="scope" id="sc_1" value="輕度" data-k="fix.scope"><span>輕度</span></label>
+          <label class="chip"><input type="radio" name="scope" id="sc_2" value="中度" data-k="fix.scope"><span>中度</span></label>
+          <label class="chip"><input type="radio" name="scope" id="sc_3" value="大幅" data-k="fix.scope"><span>大幅</span></label>
+        </div>
+        <span class="hint" id="scopeHint"></span>
+        <label class="lab" for="perf">學生作答情況<span class="hint">選填，例如答對率、常被選的錯誤選項</span>
+          <textarea id="perf" data-k="fix.perf" placeholder="例：答對率很高，但遇到生活情境時說不出是哪一種熱的傳播。"></textarea>
+        </label>
+      </fieldset>
+
+      <!-- 析卷 -->
+      <fieldset data-modes="ana">
+        <legend>雙向細目表設定<span class="rq opt">選填</span></legend>
+        <span class="hint">依臺北市國小自然領域雙向細目表格式：列為單元，欄為記憶、了解、高層次，填入配分，合計 100 分。</span>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="rows" id="rw_u" value="單元" data-k="ana.rows"><span>列依單元</span></label>
+          <label class="chip"><input type="radio" name="rows" id="rw_a" value="活動" data-k="ana.rows"><span>列依活動</span></label>
+        </div>
+        <label class="check" for="annot"><input type="checkbox" id="annot" data-k="ana.annot"> 試卷已逐題標註認知層次（例如記、理、分、應），請 AI 只列出看法不同的題目</label>
+      </fieldset>
+      <fieldset data-modes="ana">
+        <legend>試卷內容<span class="rq req">必填</span></legend>
+        <div class="deid"><b>貼上前請先去識別化，刪除：</b>
+          <ul><li>校名、行政區</li><li>命題與審題教師姓名</li><li>學生姓名、班級座號（作答過的試卷或掃描檔尤其要注意）</li><li>聯絡信箱、電話、繳交說明等行政資訊</li></ul>
+        </div>
+        <label class="lab" for="paper"><span id="paperLab">試卷文字</span>
+          <span class="hint" id="paperHint"></span>
+          <textarea id="paper" class="big" data-k="ana.paper"></textarea>
+        </label>
+        <div class="alert" id="deidAna" hidden></div>
+        <details>
+          <summary>從 PDF 複製文字的注意事項</summary>
+          <ul>
+            <li>優先從命題的 Word 原始檔複製，最準確。</li>
+            <li>雙欄排版的 PDF，複製出來左右兩欄可能交錯，貼上前請檢查順序。</li>
+            <li>使用注音字型的試卷，複製時可能夾帶注音符號。</li>
+            <li>沿用舊檔修改的 PDF，文字層可能殘留看不到的舊內容。</li>
+            <li>試卷引用的附件（如地震報告、文章）若不在檔案中，請一併貼上。</li>
+            <li>掃描檔沒有文字可複製，免費版 AI 辨識掃描圖也容易出錯。</li>
+          </ul>
+        </details>
+        <label class="check" for="upload"><input type="checkbox" id="upload" data-k="ana.upload"> 我會另外上傳試卷的 PDF 或圖片到 AI 對話中（圖多的大題建議勾選）</label>
+      </fieldset>
+    </form>
+
+    <aside aria-label="產生的提示詞" id="aside">
+      <div class="missing" id="missing" hidden></div>
+      <div id="sheets"></div>
+    </aside>
+  </div>
+
+  <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
+  <footer>
+    <span>版本 <span class="code">v0.2.4</span> · 2026-10-15</span>
+    <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
+    <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+const S={II:"Ⅱ",III:"Ⅲ"};
+const LC=[
+ {g:"INa",n:"物質與能量",II:["自然界（包含生物與非生物）是由不同物質所組成。","在地球上，物質具有重量，佔有體積。","物質各有其特性，並可以依其特性與用途進行分類。","物質的形態會因溫度的不同而改變。","太陽照射、物質燃燒和摩擦等可以使溫度升高，運用測量的方法可知溫度高低。","太陽是地球能量的主要來源，提供生物的生長需要，能量可以各種形式呈現。","生物需要能量（養分）、陽光、空氣、水和土壤，維持生命、生長與活動。","日常生活中常用的能源。"],
+  III:["物質是由微小的粒子所組成，而且粒子不斷的運動。","物質各有不同性質，有些性質會隨溫度而改變。","混合物是由不同的物質所混合，物質混合前後重量不會改變，性質可能會改變。","空氣由各種不同氣體所組成，空氣具有熱脹冷縮的性質。氣體無一定的形狀與體積。","不同形式的能量可以相互轉換，但總量不變。","能量可藉由電流傳遞、轉換而後為人類所應用。利用電池等設備可以儲存電能再轉換成其他能量。","運動的物體具有動能，對同一物體而言，速度越快動能越大。","熱由高溫處往低溫處傳播，傳播的方式有傳導、對流和輻射，生活中可運用不同的方法保溫與散熱。","植物生長所需的養分是經由光合作用從太陽光獲得的。","在生態系中，能量經由食物鏈在不同物種間流動與循環。"]},
+ {g:"INb",n:"構造與功能",II:["物質或物體各有不同的功能或用途。","物質性質上的差異性可用來區分或分離物質。","虹吸現象可用來將容器中的水吸出；連通管可測水平。","生物體的構造與功能是互相配合的。","常見動物的外部形態主要分為頭、軀幹和肢，但不同類別動物之各部位特徵和名稱有差異。","常見植物的外部形態主要由根、莖、葉、花、果實及種子所組成。","動植物體的外部形態和內部構造，與其生長、行為、繁衍後代和適應環境有關。"],
+  III:["物質有不同的結構與功能。","應用性質的不同可分離物質或鑑別物質。","物質表面的結構與性質不同，其可產生的摩擦力不同；摩擦力會影響物體運動的情形。","力可藉由簡單機械傳遞。","生物體是由細胞所組成，具有由細胞、器官到個體等不同層次的構造。","動物的形態特徵與行為相關，動物身體的構造不同，有不同的運動方式。","植物各部位的構造和所具有的功能有關，有些植物產生特化的構造以適應環境。","生物可依其形態特徵進行分類。"]},
+ {g:"INc",n:"系統與尺度",II:["使用工具或自訂參考標準可量度與比較。","生活中常見的測量單位與度量。","力的表示法，包括大小、方向與作用點等。","方向、距離可用以表示物體位置。","水和空氣可以傳送動力讓物體移動。","水有三態變化及毛細現象。","利用適當的工具觀察不同大小、距離位置的物體。","不同的環境有不同的生物生存。","地表具有岩石、砂、土壤等不同環境，各有特徵，可以分辨。","天空中天體有東升西落的現象，月亮有盈虧的變化，星星則是有些亮有些暗。"],
+  III:["生活及探究中常用的測量工具和方法。","自然界或生活中有趣的最大或最小的事物（量），事物大小宜用適當的單位來表示。","本量與改變量不同，由兩者的比例可評估變化的程度。","對相同事物做多次測量，其結果間可能有差異，差異越大表示測量越不精確。","力的大小可由物體的形變或運動狀態的改變程度得知。","運用時間與距離可描述物體的速度與速度的變化。","動物體內的器官系統是由數個器官共同組合，以執行某種特定的生理作用。","在同一時期，特定區域上，相同物種所組成的群體稱為「族群」，而在特定區域由多個族群結合而組成「群集」。","不同的環境條件影響生物的種類和分布，以及生物間的食物關係，因而形成不同的生態系。","地球是由空氣、陸地、海洋及生存於其中的生物所組成的。","岩石由礦物組成，岩石和礦物有不同特徵，各有不同用途。","地球上的水存在於大氣、海洋、湖泊與地下中。","日出日落時間與位置，在不同季節會不同。","四季星空會有所不同。","除了地球外，還有其他行星環繞著太陽運行。"]},
+ {g:"INd",n:"改變與穩定",II:["當受外在因素作用時，物質或自然現象可能會改變。改變有些較快、有些較慢；有些可以回復，有些則不能。","物質或自然現象的改變情形，可以運用測量的工具和方法得知。","生物從出生、成長到死亡有一定的壽命，透過生殖繁衍下一代。","空氣流動產生風。","自然環境中有砂石及土壤，會因水流、風而發生改變。","一年四季氣溫會有所變化，天氣也會有所不同。氣象報告可以讓我們知道天氣的可能變化。","天氣預報常用雨量、溫度、風向、風速等資料來表達天氣狀態，這些資料可以使用適當儀器測得。","力有各種不同的形式。","施力可能會使物體改變運動情形或形狀；當物體受力變形時，有的可恢復原狀，有的不能恢復原狀。"],
+  III:["自然界中存在著各種的穩定狀態；當有新的外加因素時，可能造成改變，再達到新的穩定狀態。","人類可以控制各種因素來影響物質或自然現象的改變，改變前後的差異可以被觀察，改變的快慢可以被測量與了解。","地球上的物體（含生物和非生物）均會受地球引力的作用，地球對物體的引力就是物體的重量。","生物個體間的性狀具有差異性；子代與親代的性狀具有相似性和相異性。","生物體接受環境刺激會產生適當的反應，並自動調節生理作用以維持恆定。","生物種類具有多樣性；生物生存的環境亦具有多樣性。","天氣圖上用高、低氣壓、鋒面、颱風等符號來表示天氣現象，並認識其天氣變化。","土壤是由岩石風化成的碎屑及生物遺骸所組成。化石是地層中古代生物的遺骸。","流水、風和波浪對砂石和土壤產生侵蝕、風化、搬運及堆積等作用，河流是改變地表最重要的力量。","流水及生物活動，對地表的改變會產生不同的影響。","海水的流動會影響天氣與氣候的變化。氣溫下降時水氣凝結為雲和霧或昇華為霜、雪。","自然界的水循環主要由海洋或湖泊表面水的蒸發，經凝結降水，再透過地表水與地下水等傳送回海洋或湖泊。","施力可使物體的運動速度改變，物體受多個力的作用，仍可能保持平衡靜止不動，物體不接觸也可以有力的作用。"]},
+ {g:"INe",n:"交互作用",II:["自然界的物體、生物、環境間常會相互影響。","溫度會影響物質在水中溶解的程度（定性）及物質燃燒、生鏽、發酵等現象。","有些物質溶於水中，有些物質不容易溶於水中。","常見食物的酸鹼性有時可利用氣味、觸覺、味覺簡單區分，花卉、菜葉會因接觸到酸鹼而改變顏色。","生活周遭有各種的聲音；物體振動會產生聲音，聲音可以透過固體、液體、氣體傳播。不同的動物會發出不同的聲音，並且作為溝通的方式。","光線以直線前進，反射時有一定的方向。","磁鐵具有兩極，同極相斥，異極相吸；磁鐵會吸引含鐵的物體。磁力強弱可由吸起含鐵物質數量多寡得知。","物質可分為電的良導體和不良導體，將電池用電線或良導體接成通路，可使燈泡發光、馬達轉動。","電池或燈泡可以有串聯和並聯的接法，不同的接法會產生不同的效果。","動物的感覺器官接受外界刺激會引起生理和行為反應。","環境的變化會影響植物生長。"],
+  III:["自然界的物體、生物與環境間的交互作用，常具有規則性。","物質的形態與性質可因燃燒、生鏽、發酵、酸鹼作用等而改變或形成新物質，這些改變有些會和溫度、水、空氣、光等有關。改變要能發生，常需要具備一些條件。","燃燒是物質與氧劇烈作用的現象，燃燒必須同時具備可燃物、助燃物，並達到燃點等三個要素。","物質溶解、反應前後總重量不變。","常用酸鹼物質的特性，水溶液的酸鹼性質及其生活上的運用。","聲音有大小、高低與音色等不同性質，生活中聲音有樂音與噪音之分，噪音可以防治。","陽光是由不同色光組成。","光會有折射現象，放大鏡可聚光和成像。","地球有磁場，會使指北針指向固定方向。","磁鐵與通電的導線皆可產生磁力，使附近指北針偏轉。改變電流方向或大小，可以調控電磁鐵的磁極方向或磁力大小。","動物有覓食、生殖、保護、訊息傳遞以及社會性的行為。","生物的分布和習性，會受環境因素的影響；環境改變也會影響生存於其中的生物種類。","生態系中生物與生物彼此間的交互作用，有寄生、共生和競爭的關係。"]},
+ {g:"INf",n:"科學與生活",II:["日常生活中常見的科技產品。","不同的環境影響人類食物的種類、來源與飲食習慣。","自然的規律與變化對人類生活應用與美感的啟發。","季節的變化與人類生活的關係。","人類活動對環境造成影響。","地震會造成嚴重的災害，平時的準備與防震能降低損害。","水與空氣汙染會對生物產生影響。"],
+  III:["世界與本地不同性別科學家的事蹟與貢獻。","科技在生活中的應用與對環境與人體的影響。","自然界生物的特徵與原理在人類生活上的應用。","人類日常生活中所依賴的經濟動植物及栽培養殖的方法。","臺灣的主要天然災害之認識及防災避難。","生活中的電器可以產生電磁波，具有功能但也可能造成傷害。"]},
+ {g:"INg",n:"資源與永續性",II:["自然環境中有許多資源。人類生存與生活需依賴自然環境中的各種資源，但自然資源都是有限的，需要珍惜使用。","地球資源永續可結合日常生活中低碳與節水方法做起。","可利用垃圾減量、資源回收、節約能源等方法來保護環境。"],
+  III:["自然景觀和環境一旦被改變或破壞，極難恢復。","人類活動與其他生物的活動會相互影響，不當引進外來物種可能造成經濟損失和生態破壞。","生物多樣性對人類的重要性，而氣候變遷將對生物生存造成影響。","人類的活動會造成氣候變遷，加劇對生態與環境的影響。","能源的使用與地球永續發展息息相關。","碳足跡與水足跡所代表環境的意涵。","人類行為的改變可以減緩氣候變遷所造成的衝擊與影響。"]}
+];
+const LP=[
+ {p:"ti",n:"思考智能｜想像創造",II:["能在指導下觀察日常生活現象的規律性，並運用想像力與好奇心，了解及描述自然環境的現象。"],III:["能運用好奇心察覺日常生活現象的規律性會因為某些改變而產生差異，並能依據已知的科學知識科學方法想像可能發生的事情，以察覺不同的方法，也常能做出不同的成品。"]},
+ {p:"tr",n:"思考智能｜推理論證",II:["能知道觀察、記錄所得自然現象的結果是有其原因的，並依據習得的知識，說明自己的想法。"],III:["能將自己及他人所觀察、記錄的自然現象與習得的知識互相連結，察覺彼此間的關係，並提出自己的想法及知道與他人的差異。"]},
+ {p:"tc",n:"思考智能｜批判思辨",II:["能簡單分辨或分類所觀察到的自然科學現象。"],III:["能就所蒐集的數據或資料，進行簡單的記錄與分類，並依據習得的知識，思考資料的正確性及辨別他人資訊與事實的差異。"]},
+ {p:"tm",n:"思考智能｜建立模型",II:["能經由觀察自然界現象之間的關係，理解簡單的概念模型，進而與其生活經驗連結。"],III:["能經由提問、觀察及實驗等歷程，探索自然界現象之間的關係，建立簡單的概念模型，並理解到有不同模型的存在。"]},
+ {p:"po",n:"問題解決｜觀察與定題",II:["能從日常經驗、學習活動、自然環境，進行觀察，進而能察覺問題。","能依據觀察、蒐集資料、閱讀、思考、討論等，提出問題。"],III:["能從學習活動、日常經驗及科技運用、自然環境、書刊及網路媒體等察覺問題。","能初步辨別適合科學探究的問題，並能依據觀察、蒐集資料、閱讀、思考、討論等，提出適宜探究之問題。"]},
+ {p:"pe",n:"問題解決｜計劃與執行",II:["能了解一個因素改變可能造成的影響，進而預測活動的大致結果。在教師或教科書的指導或說明下，能了解探究的計畫。","能正確安全操作適合學習階段的物品、器材儀器、科技設備及資源，並能觀察和記錄。"],III:["能了解自變項、應變項並預測改變時可能的影響和進行適當次數測試的意義。在教師或教科書的指導或說明下，能了解探究的計畫，並進而能根據問題的特性、資源（設備等）的有無等因素，規劃簡單的探究活動。","能正確安全操作適合學習階段的物品、器材儀器、科技設備及資源。能進行客觀的質性觀察或數值量測並詳實記錄。"]},
+ {p:"pa",n:"問題解決｜分析與發現",II:["能運用簡單分類、製作圖表等方法，整理已有的資訊或數據。","能從得到的資訊或數據，形成解釋、得到解答、解決問題。並能將自己的探究結果和他人的結果（例如：來自老師）相比較，檢查是否相近。"],III:["能分析比較、製作圖表、運用簡單數學等方法，整理已有的資訊或數據。","能從（所得的）資訊或數據，形成解釋、發現新知、獲知因果關係、解決問題或是發現新的問題。並能將自己的探究結果和他人的結果（例如：來自同學）比較對照，檢查相近探究是否有相近的結果。"]},
+ {p:"pc",n:"問題解決｜討論與傳達",II:["能專注聆聽同學報告，提出疑問或意見。並能對探究方法、過程或結果，進行檢討。","能利用簡單形式的口語、文字或圖畫等，表達探究之過程、發現。"],III:["能理解同學報告，提出合理的疑問或意見。並能對「所訂定的問題」、「探究方法」、「獲得之證據」及「探究之發現」等之間的符應情形，進行檢核並提出優點和弱點。","能利用簡單形式的口語、文字、影像（例如：攝影、錄影）、繪圖或實物、科學名詞、數學公式、模型等，表達探究之過程、發現或成果。"]},
+ {p:"ai",n:"科學的態度與本質｜培養科學探究的興趣",note:true,II:["保持對自然現象的好奇心，透過不斷的探尋和提問，常會有新發現。","透過探討自然與物質世界的規律性，感受發現的樂趣。","透過動手實作，享受以成品來表現自己構想的樂趣。"],III:["透過科學探索了解現象發生的原因或機制，滿足好奇心。","透過成功的科學探索經驗，感受自然科學學習的樂趣。","參與合作學習並與同儕有良好的互動經驗，享受學習科學的樂趣。"]},
+ {p:"ah",n:"科學的態度與本質｜應用科學思考與探究的習慣",II:["透過各種感官了解生活週遭事物的屬性。","透過有系統的分類與表達方式，與他人溝通自己的想法與發現。"],III:["利用科學知識理解日常生活觀察到的現象。","透過科學探究活動解決一部分生活週遭的問題。"]},
+ {p:"an",n:"科學的態度與本質｜認識科學本質",II:["體會科學的探索都是由問題開始。","察覺科學家們是利用不同的方式探索自然與物質世界的形式與規律。","發覺創造和想像是科學的重要元素。"],III:["透過科學探究活動，了解科學知識的基礎是來自於真實的經驗和證據。","發覺許多科學的主張與結論，會隨著新證據的出現而改變。","體認不同性別、族群等文化背景的人，都可成為科學家。"]}
+];
+const GRADES=[["3","三年級","II"],["4","四年級","II"],["5","五年級","III"],["6","六年級","III"]];
+const TYPES=[["mc","單題選擇題"],["set","題組（共同情境＋小題）"],["open","非選題（簡答、說明）"],["chart","圖表判讀題"],["inq","結果未知的探究任務"]];
+const B="＿＿＿＿";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const lcMap={},lpMap={};
+["II","III"].forEach(st=>{
+  LC.forEach(gr=>gr[st].forEach((t,i)=>{lcMap[gr.g+"-"+S[st]+"-"+(i+1)]={t,st}}));
+  LP.forEach(gr=>gr[st].forEach((t,i)=>{lpMap[gr.p+"-"+S[st]+"-"+(i+1)]={t,st,note:!!gr.note}}));
+});
+
+const EXAMPLE={mode:"gen",grade:"5",level:"lite",publisher:"",unit:"熱的傳播",
+  activity:"在金屬棒貼感溫貼紙，從一端加熱，觀察顏色變化的順序；在燒杯水中加入少量木屑後從底部加熱，觀察木屑的移動方向。",
+  lc:["INa-Ⅲ-8"],lp:["tr-Ⅲ-1","ah-Ⅲ-1"],aiSuggest:false,
+  miscon:"學生以為冰塊會把「冷」傳到手上\n學生以為金屬本身就比木頭冷\n學生認為熱只會往上傳",
+  gen:{types:["mc","set"],count:3,dist:"以了解為主，含一題高層次",context:"家中廚房、學校營養午餐"},
+  fix:{orig:"（　）熱的傳播方式有哪三種？\n①傳導、對流、輻射　②傳導、蒸發、凝結\n③對流、蒸發、輻射　④傳導、對流、蒸發",ans:"①",concept:"",way:"quick",scope:"中度",perf:"答對率很高，但遇到生活情境時，學生常說不出是哪一種熱的傳播。"},
+  ana:{rows:"單元",annot:false,upload:false,paper:"一、是非題（每題 2 分）\n（　）1. 熱會從溫度高的地方傳到溫度低的地方。\n（　）2. 冬天摸鐵欄杆覺得冰，是因為鐵把冷傳到手上。\n二、選擇題（每題 3 分）\n（　）1. 煮湯時，湯匙柄慢慢變燙，主要是哪一種熱的傳播？①傳導 ②對流 ③輻射\n三、題組（共 10 分）\n小華把兩杯同樣溫度的熱水，分別倒進保麗龍杯和不鏽鋼杯，每 5 分鐘記錄一次水溫：\n時間（分）：0、5、10、15\n保麗龍杯（℃）：80、76、72、69\n不鏽鋼杯（℃）：80、70、62、55\n（1）哪一個杯子保溫效果較好？請用表中的數據說明。（4 分）\n（2）如果要讓不鏽鋼杯更保溫，你會怎麼改良？說明理由。（6 分）"}};
+const BLANK={mode:"gen",grade:"",level:"lite",publisher:"",unit:"",activity:"",lc:[],lp:[],aiSuggest:false,miscon:"",
+  gen:{types:[],count:3,dist:"以了解為主，含一題高層次",context:""},
+  fix:{orig:"",ans:"",concept:"",way:"quick",scope:"中度",perf:""},
+  ana:{rows:"單元",annot:false,upload:false,paper:""}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+let st=clone(BLANK), isExample=false;
+try{localStorage.removeItem("sciPromptV2");localStorage.removeItem("sciPromptDraft")}catch(e){}
+
+const getP=p=>{const [a,b]=p.split(".");return b?st[a][b]:st[a]};
+const setP=(p,v)=>{const [a,b]=p.split(".");if(b)st[a][b]=v;else st[a]=v};
+function stage(){const g=GRADES.find(x=>x[0]===st.grade);return g?g[2]:null}
+function gradeName(){const g=GRADES.find(x=>x[0]===st.grade);return g?g[1]:"（未選）"}
+function stageName(){const s=stage();return s==="II"?"第二學習階段":s==="III"?"第三學習階段":"（未選）"}
+const lite=()=>st.level!=="full";
+const maxCount=()=>lite()?5:10;
+
+$("grades").innerHTML=GRADES.map(g=>`<label class="chip"><input type="radio" name="grade" id="g${g[0]}" value="${g[0]}" data-k="grade"><span>${g[1]}</span></label>`).join("");
+$("types").innerHTML=TYPES.map(t=>`<label class="chip"><input type="checkbox" name="type" id="t_${t[0]}" value="${t[0]}"><span>${t[1]}</span></label>`).join("");
+
+const HOW={
+  gen:["<b>1</b> 貼上第一段，AI 提出情境與迷思概念後停下","<b>2</b> 把第二段紅色空格換成您的選擇，AI 出題","<b>3</b> 貼上第三段，AI 模擬學生作答並審題"],
+  fix:["<b>1</b> 貼上第一段，AI 診斷原題並提出改寫方向","<b>2</b> 在第二段填入您選的方向，AI 改寫","<b>3</b> 貼上第三段，AI 審查改寫後的題目"],
+  ana:["<b>1</b> 貼上第一段，AI 逐題分析","<b>2</b> 精簡模式依序貼上後續批次","<b>3</b> 貼上彙整與建議兩段，取得雙向細目表"]};
+const SCOPE={"輕度":"輕度：保留原題架構，只補上必要的情境或修改選項。","中度":"中度：重寫情境，但保留題型和想測的概念。","大幅":"大幅：可以改變題型，例如把選擇題改成題組或非選題。"};
+
+function renderPicker(){
+  const s=stage(), q=$("lcSearch").value.trim();
+  if(!s){$("lcPicker").innerHTML='<div class="empty">請先選擇年級，這裡會列出該學習階段的學習內容。</div>';$("lpPicker").innerHTML='<div class="empty">請先選擇年級。</div>';return}
+  let h="";
+  LC.forEach(gr=>{
+    const items=gr[s].map((t,i)=>({c:gr.g+"-"+S[s]+"-"+(i+1),t})).filter(x=>!q||x.c.toLowerCase().includes(q.toLowerCase())||x.t.includes(q)||gr.n.includes(q));
+    if(!items.length)return;
+    h+=`<div class="grp"><h3>${gr.g}　${gr.n}</h3>`+items.map(x=>`<label class="item"><input type="checkbox" data-lc="${x.c}" ${st.lc.includes(x.c)?"checked":""}><span class="code">${x.c}</span><span class="txt">${esc(x.t)}</span></label>`).join("")+"</div>";
+  });
+  $("lcPicker").innerHTML=h||'<div class="empty">找不到符合的條目，換個關鍵字試試。</div>';
+  const dis=st.mode==="gen"&&st.aiSuggest;
+  let p="";
+  LP.forEach(gr=>{
+    p+=`<div class="grp"><h3>${gr.n}</h3>`+gr[s].map((t,i)=>{const c=gr.p+"-"+S[s]+"-"+(i+1);return `<label class="item${gr.note?" note":""}"><input type="checkbox" data-lp="${c}" ${st.lp.includes(c)?"checked":""} ${dis?"disabled":""}><span class="code">${c}</span><span class="txt">${esc(t)}</span></label>`}).join("")+"</div>";
+  });
+  $("lpPicker").innerHTML=p;
+  $("lpPicker").style.opacity=dis?".5":"1";
+}
+function renderTags(){
+  $("lcSel").innerHTML=st.lc.map(c=>`<span class="tag">${c}<button type="button" aria-label="移除 ${c}" data-rm-lc="${c}">×</button></span>`).join("");
+  $("lpSel").innerHTML=(st.mode==="gen"&&st.aiSuggest)?'<span class="hint">將由 AI 從本階段條目中建議 2–3 條，您確認後再出題。</span>':st.lp.map(c=>`<span class="tag">${c}<button type="button" aria-label="移除 ${c}" data-rm-lp="${c}">×</button></span>`).join("");
+}
+function applyMode(){
+  const m=st.mode;
+  $("f").dataset.mode=m;
+  const qf=m==="fix"&&st.fix.way!=="full";
+  document.querySelectorAll("[data-modes]").forEach(el=>el.hidden=!el.dataset.modes.split(" ").includes(m));
+  document.querySelectorAll(".q-hide").forEach(el=>{if(qf)el.hidden=true;else if(!el.dataset.modes)el.hidden=false});
+  $("wayHint").textContent=qf?"只要貼上題目，產生一段提示詞，AI 直接給改好的題目。想知道原題問題出在哪裡、自己選擇改寫方向，請用完整流程。":"分三段：AI 先診斷並提出改寫方向，由您選擇後再改寫，最後審題。";
+  document.querySelectorAll("[data-req]").forEach(el=>{const map=Object.fromEntries(el.dataset.req.split(",").map(x=>x.split(":")));el.textContent=map[m];el.className="rq "+(map[m]==="必填"?"req":"opt")});
+  $("modeNote").textContent={gen:"出題：從課綱條目開始，設計新的素養題",fix:"改題：把手上的舊題目改成素養題",ana:"析卷：檢查一份命好的試卷"}[m];
+  $("modeSec").textContent={gen:"出題設定",fix:"改題設定",ana:"析卷設定"}[m];
+  $("how").innerHTML=(qf?["<b>1</b> 複製提示詞貼到 AI，直接得到改寫後的題目","<b>2</b> 不滿意可以直接請 AI 再改，或改用完整流程"]:HOW[m]).map(x=>"<li>"+x+"</li>").join("");
+  $("unitLab").textContent=m==="ana"?"考試範圍（單元名稱）":"單元名稱";
+  $("unitHint").hidden=m!=="ana";
+  $("bookLegend").firstChild.textContent=m==="ana"?"教科書與考試範圍":"教科書與單元";
+  $("misHint").textContent=m==="ana"?"一行一個。AI 會用來檢查誘答選項是否對應真實的迷思。":m==="gen"?"用學生的想法來描述，一行一個。沒填時，AI 會先列出常見迷思，請您確認後再出題。":"用學生的想法來描述，一行一個。";
+  $("countLab").textContent=`題數（${lite()?"精簡模式":"完整模式"}最多 ${maxCount()} 題）`;
+  $("count").max=maxCount();
+  $("origLab").textContent=lite()?"題目文字（含選項；精簡模式一次一題，題組算一題）":"題目文字（含選項；完整模式最多三題，請標好題號）";
+  $("scopeHint").textContent=SCOPE[st.fix.scope]||"";
+  $("paperLab").textContent=lite()?"試卷文字（第一批）":"試卷文字（整份）";
+  $("paperHint").textContent=lite()?"精簡模式請分批：先貼一個大題（題組），是非、選擇等區塊每次約 10 小題。其餘批次用右邊的「後續批次」提示詞接著貼。":"可貼上整份試卷。題號請保留試卷原本的編號。";
+}
+function syncForm(){
+  document.querySelectorAll("[data-k]").forEach(el=>{
+    const v=getP(el.dataset.k);
+    if(el.type==="radio")el.checked=(v===el.value);
+    else if(el.type==="checkbox")el.checked=!!v;
+    else el.value=v==null?"":v;
+  });
+  TYPES.forEach(t=>$("t_"+t[0]).checked=st.gen.types.includes(t[0]));
+  $("bannerText").textContent=isExample?"目前顯示的是範例（五年級「熱的傳播」，題目與試卷片段皆為自編），可直接修改，或按「全部清空」重新填寫。":"每次開啟都是空白頁面。第一次使用，可以先載入範例看看（五年級「熱的傳播」，題目與試卷片段皆為自編）。";
+}
+
+/* ---------- de-identification check ---------- */
+const DEID=[[/[一-龥]{1,6}(國民小學|國小)/g,"校名"],[/[一-龥]{1,3}[市縣][一-龥]{1,3}區/g,"行政區"],[/(命題|審題)教師[:：]?\s*[一-龥]{0,4}/g,"教師姓名"],[/[\w.+-]+@[\w-]+(\.[\w-]+)+/g,"電子信箱"],[/(姓名|座號)[:：]\s*[一-龥\d]{1,4}/g,"學生資料"]];
+function deidCheck(text,box){
+  const hits=[];DEID.forEach(([re,lab])=>{const m=String(text||"").match(re);if(m)hits.push(lab+"：「"+[...new Set(m)].slice(0,3).join("」「")+"」")});
+  const el=$(box);
+  if(hits.length){el.hidden=false;el.innerHTML="<b>偵測到可能需要移除的資料，請確認：</b><ul>"+hits.map(h=>"<li>"+esc(h)+"</li>").join("")+"</ul>此檢查只在您的瀏覽器中進行。"}else el.hidden=true;
+}
+
+/* ---------- prompt pieces ---------- */
+const lines=(arr,map)=>arr.map(c=>`  ${c}　${map[c].t}`).join("\n");
+const misList=()=>st.miscon.split("\n").map(s=>s.trim()).filter(Boolean);
+const typeText=()=>st.gen.types.map(k=>TYPES.find(t=>t[0]===k)[1]).join("、");
+function principles(){
+  const codes=st.mode==="gen"?"學習內容與學習表現只能使用我提供的條目與代碼，不可自行編造。":"標註課綱代碼時，只能使用十二年國教自然科學領域課綱的真實條目；不確定就寫「待確認」，不可自行編造。";
+  return `【命題原則】
+1. 學生必須讀懂情境中的資訊才能作答；不讀情境、只靠背誦就能答對的題目不算素養題。
+2. 只使用${stageName()}的概念與用詞，不使用國中以上用語（例如：熱平衡、比熱、分子、電阻）。
+3. 教科書內容以我提供的描述為準，不要自行推測教科書的單元、頁碼或實驗步驟。
+4. 情境中的數據與現象必須科學上正確、合理。
+5. ${codes}
+6. 試題難度＝認知能力＋資訊量。加長情境不等於提高認知層次，避免把題目變成閱讀測驗。
+7. 高層次題目必須提供可分析的數據、圖表或材料。
+8. 情境不依賴特定地區或家庭的生活經驗。
+9. 紙筆評量以認知為主，技能與態度宜從實作評量。
+10. 使用臺灣繁體中文與國小自然科常用名詞。`;
+}
+function cogRule(){
+  return `【雙向細目表規範（臺北市國小自然領域格式）】
+- 認知層次分三類：記憶、了解、高層次（應用、分析、評鑑、創作），依 Bloom 認知領域教育目標分類修訂版。
+- 每題標註認知層次並附一句理由；標為高層次的題目，要說明學生需要應用或分析什麼。
+- 一份試卷一定要有高層次題目，建議配分 10–20 分。`;
+}
+function baseSettings(){
+  const s=[`- 年級：${gradeName()}（${stageName()}）`];
+  const bk=st.publisher||"未指定版本";
+  if(st.mode==="ana")s.push(`- 教科書版本：${bk}`,`- 考試範圍：${st.unit.trim()||"未提供"}`);
+  else{s.push(`- 教科書版本／單元：${bk}／${st.unit.trim()||"未填單元名稱"}`,`- 本單元重要實驗或活動：${st.activity.trim()||"未提供"}`)}
+  if(st.lc.length)s.push("- 學習內容：\n"+lines(st.lc,lcMap));
+  else s.push("- 學習內容："+(st.mode==="gen"?"（未選）":st.mode==="fix"?"未指定，請你從原題推斷":"未指定，請你從試卷反推"));
+  if(st.mode==="gen"&&st.aiSuggest)s.push("- 學習表現：請你從下方候選清單中建議");
+  else if(st.lp.length)s.push("- 學習表現：\n"+lines(st.lp,lpMap));
+  else s.push("- 學習表現："+(st.mode==="gen"?"（未選）":"未指定"));
+  const m=misList();
+  s.push("- 教師觀察到的學生迷思概念："+(m.length?"\n"+m.map(x=>"  ・"+x).join("\n"):"未提供"));
+  return s.join("\n");
+}
+const summary=(what)=>lite()?`\n最後用 5 行以內輸出【接續摘要】：${what}。如果之後要開新對話繼續，我會把這段摘要貼回來。`:"";
+
+/* ---------- 出題 ---------- */
+function buildGen(){
+  const n=Math.min(parseInt(st.gen.count,10)||0,maxCount());
+  const mis=misList(), hasNote=st.lp.some(c=>lpMap[c]&&lpMap[c].note);
+  let k=1;
+  let p1=`你是協助國小自然科教師命製「素養導向紙筆試題」的命題夥伴。我們分三個階段進行：確認設定與情境、出題、審題。現在是第一階段。
+
+【命題設定】
+${baseSettings()}
+- 題型：${typeText()||"（未選）"}
+- 題數：共 ${n} 題
+- 認知層次分布：${st.gen.dist}
+- 情境偏好：${st.gen.context.trim()||"無特別偏好"}
+
+${principles()}
+`;
+  if(st.aiSuggest&&stage())p1+="\n【學習表現候選清單】\n"+Object.keys(lpMap).filter(c=>lpMap[c].st===stage()&&!lpMap[c].note).map(c=>`  ${c}　${lpMap[c].t}`).join("\n")+"\n";
+  p1+=`
+【第一階段要做的事】
+${k++}. 對齊檢查：簡短檢查學習內容、學習表現與題型是否搭配；若某個題型測不到所選的學習表現，請指出並建議調整。`;
+  if(hasNote&&!st.aiSuggest)p1+="\n   所選的「培養科學探究的興趣（ai）」屬於態度面向，較難以紙筆評量，請建議改以哪條學習表現為主。";
+  if(st.aiSuggest)p1+=`\n${k++}. 學習表現建議：從候選清單挑出 2–3 條最適合用紙筆評量測出的條目，各用一句話說明理由。`;
+  p1+=mis.length?`\n${k++}. 迷思概念：針對我提供的每個迷思概念，用一句話說明它可以在試題中如何被診斷出來；描述不夠具體時，請提出追問。`
+    :`\n${k++}. 迷思概念：列出學生在這些學習內容上 3 個常見的迷思概念，用「學生以為……」的句型描述。`;
+  const types="   ・學生接觸的事（日常生活中親身經歷的情境）\n   ・複雜可探究（需要比較變因或規劃探究的情境）\n   ・單純可解釋（用所學概念解釋一個現象）\n   ・應用可練習（把概念用在解決生活問題）\n   ・跨域（結合其他領域或社會議題）";
+  p1+=`\n${k++}. 情境提案：${lite()?"從下列五種類型中挑選最適合的 3 種，各提出一個情境":"依下列五種類型各提出一個情境"}，每個 2–3 句：
+${types}
+   每個情境附上：可測到的學習表現、為什麼必須讀懂情境才能作答、預估認知層次（記憶／了解／高層次）、是否需要附圖（需要的話用文字描述，由我自行繪製）。`;
+  if(lite())p1+=`\n${k++}. 用 5 行以內輸出【接續摘要】：年級、學習內容與學習表現代碼、迷思概念、各情境的標題。`;
+  p1+=`\n請在這裡結束回覆，不要出題。等我選定情境${st.aiSuggest?"與學習表現":""}後再繼續。`;
+
+  const req={mc:"單題選擇題：單選、四個選項。每個錯誤選項標註對應的迷思概念；不對應任何迷思的選項，說明它的誘答理由。",
+    set:"題組：一個共同情境搭配 2–4 小題，由淺入深，至少一小題必須運用情境中的資料推理才能作答。",
+    open:"非選題：附評分規準，寫出 0、1、2 分各自的判準，並為每個分數各寫一則模擬學生回答。",
+    chart:"圖表判讀題：用文字完整描述圖表（標題、座標軸、單位、各數據點），數據必須合理，由我自行繪製。",
+    inq:"結果未知的探究任務：把課本步驟固定的實驗，改成請學生判斷如何規劃、如何從結果下結論的任務。"};
+  let p2=`第二階段：出題。
+
+【我的選擇】
+- 情境：第 ${B} 個（如需修改：${B}）
+- 迷思概念：採用 ${B}${st.aiSuggest?`\n- 學習表現：採用 ${B}`:""}
+
+請依第一階段的設定與命題原則出題，共 ${n} 題，題型：${typeText()||"（未選）"}；認知層次分布：${st.gen.dist}${n>1?"，至少一題為高層次":""}。
+
+【各題型要求】`+st.gen.types.map(t=>"\n・"+req[t]).join("")+`
+
+【每一題都要附上】
+・正確答案
+・解析：學生需要用到情境中的哪些資訊、哪個概念
+・認知層次與一句判斷理由
+・建議配分（以一份 100 分試卷中的比重估算，供我調整）
+
+${cogRule()}
+
+【最後用表格整理】
+題號｜題型｜單元｜學習內容代碼｜學習表現代碼｜認知層次｜建議配分｜可診斷的迷思概念｜答案
+表格下方列出記憶、了解、高層次的配分小計。`+summary("各題題號、題型、認知層次與答案")+`
+請在這裡結束回覆，等我要求審題。`;
+
+  const p3=`第三階段：審題。請以審題委員的角度檢查剛才的題目。先不要改寫，只提出問題與建議。
+
+1. 模擬作答：扮演下列學生回答每一題，寫出他會選的答案和理由（每人每題 1–2 句）。
+   (a) 沒有讀情境、只靠課本記憶的學生
+   (b) 持有迷思概念的學生${lite()?"":"\n   (c) 理解正確的學生"}
+   如果 (a) 也能答對，請標記「情境只是裝飾」。
+
+2. 逐題檢核下列項目，只列出「需修改」的項目與原因；全部通過的題目寫「全部通過」。
+   情境必要性｜未超綱｜科學內容正確｜答案唯一｜誘答對應真實迷思｜閱讀負擔適當｜確實測到學習表現｜題目之間不互相提示｜資訊量沒有只增加閱讀負擔｜不依賴特定地區或生活經驗｜標為高層次的題目名實相符
+
+3. 列出需要我自行繪製或拍攝的圖表。
+
+4. 總結最需要優先修改的 3 個問題。`;
+  return [{t:"確認設定，提出情境",d:"AI 檢查搭配、列出迷思概念與情境後停下，等您選擇。",x:p1},
+          {t:"出題",d:"先把紅色「＿＿」換成您的選擇，再貼上。",x:p2},
+          {t:"審題",d:"AI 模擬學生作答，逐題檢核。",x:p3}];
+}
+
+/* ---------- 改題 ---------- */
+function buildFix(){
+  if(st.fix.way!=="full"){
+    const q=`請幫我把下面這題國小自然科試題，改寫成素養導向試題。
+
+- 年級：${gradeName()}（${stageName()}）
+
+【原題】
+${st.fix.orig.trim()||"（請貼上原題）"}
+
+- 原題答案：${st.fix.ans.trim()||"未提供"}${st.fix.concept.trim()?"\n- 這題想測的概念："+st.fix.concept.trim():""}
+
+【改寫要求】
+1. 學生必須讀懂情境中的資訊才能作答，不能只靠背誦。
+2. 保留原題想測的概念與題型，只使用${stageName()}的概念與用詞。
+3. 情境貼近國小學生的生活經驗，數據與現象要科學上正確，不依賴特定地區的生活經驗。
+4. 題目不要只是變長；加長情境不等於提高認知層次。
+5. 使用臺灣繁體中文與國小自然科常用名詞。
+
+【請直接輸出】
+1. 改寫後的題目${lite()?"":"（兩個不同版本）"}與正確答案
+2. 修改說明（2–3 點）
+3. 認知層次：原題 → 改題（記憶／了解／高層次）
+4. 自我檢查：沒有讀情境的學生能不能答對？如果能，請先再修改一次才輸出。
+如果原題用來測基本概念已經很恰當、不需要改寫，請直接說明，只做必要的文字修飾。題目若有圖片，我會另外上傳。`;
+    return [{t:"快速改題",d:"一段提示詞，AI 直接輸出改寫後的題目與說明。",x:q}];
+  }
+  const sc=st.fix.scope||"中度", nd=lite()?2:3;
+  const p1=`你是協助國小自然科教師把舊題目改寫成「素養導向試題」的夥伴。我們分三個階段：診斷、改寫、審題。現在是第一階段：只診斷，不改寫。
+
+【基本設定】
+${baseSettings()}
+
+【原題】${lite()?"":"（最多三題，請逐題診斷）"}
+${st.fix.orig.trim()||"（請貼上原題）"}
+
+- 原題答案：${st.fix.ans.trim()||"未提供"}
+- 這題想測的概念：${st.fix.concept.trim()||"未提供，請你推論"}
+- 改寫幅度：${SCOPE[sc]}
+- 學生作答情況：${st.fix.perf.trim()||"未提供"}
+
+${principles()}
+
+【第一階段要做的事】
+1. 推論原題對應的學習內容、學習表現與想測的概念；我已提供的，檢查是否吻合。
+2. 判斷原題的認知層次（記憶／了解／高層次），附一句理由。
+3. 指出原題的問題，從下列類型中挑出適用的並說明：
+   只考記憶｜情境只是裝飾｜情境不真實｜誘答選項沒有診斷力｜超綱或用詞不當｜答案有爭議｜閱讀負擔過重｜情境反而降低認知層次｜情境依賴特定地區或生活經驗
+4. 指出原題值得保留的優點。
+5. 判斷是否需要改寫。段考需要知識題與素養題搭配；如果這題用來測基本概念已經很恰當，請直接說明它適合在試卷中扮演的角色，然後結束回覆。
+6. 如果需要改寫，依上述改寫幅度提出 ${nd} 個改寫方向，每個說明：要改什麼、預估改寫後的認知層次、取捨。可參考的方向：
+   增加情境必要性｜提供數據或材料讓學生分析｜把步驟固定的實驗改成結果未知的任務｜強化誘答選項的診斷力${lite()?"\n7. 用 5 行以內輸出【接續摘要】：原題想測的概念、原題認知層次、主要問題、各改寫方向的標題。":""}
+請在這裡結束回覆，不要改寫。等我選定方向後再繼續。`;
+
+  const p2=`第二階段：改寫。
+
+【我的選擇】
+- 改寫方向：第 ${B} 個
+- 補充要求：${B}（沒有可刪除這一行）
+
+請依「${sc}」的改寫幅度改寫，並附上：
+・改寫後的題目與正確答案
+・解析：學生需要用到情境中的哪些資訊、哪個概念
+・每個錯誤選項對應的迷思概念（非選題則附 0、1、2 分的評分規準）
+・改寫後的認知層次與一句理由，並寫出「原題：○○ → 改題：○○」
+
+【原題與改題對照表】
+${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處｜原題寫法｜改寫後｜對應的問題類型｜為什麼這樣改"}`+summary("改寫後的題目重點、答案與認知層次")+`
+請在這裡結束回覆，等我要求審題。`;
+
+  const p3=`第三階段：審題。請檢查改寫後的題目。先不要再改寫，只提出問題與建議。
+
+1. 模擬作答：扮演下列學生作答，寫出他會選的答案和理由（每人 1–2 句）。
+   (a) 沒有讀情境、只靠課本記憶的學生
+   (b) 持有迷思概念的學生${lite()?"":"\n   (c) 理解正確的學生"}
+   如果 (a) 也能答對，請標記「情境只是裝飾」。
+
+2. 檢核下列項目，只列出「需修改」的項目與原因：
+   仍測到原本想測的概念｜難度沒有意外大幅提高｜不是「題目變長，但沒有變得更素養」｜情境必要性｜未超綱｜科學內容正確｜答案唯一｜誘答對應真實迷思｜閱讀負擔適當｜不依賴特定地區或生活經驗｜標為高層次的題目名實相符
+
+3. 列出需要我自行繪製或拍攝的圖表。
+
+4. 給一個最值得做的修改建議。`;
+  return [{t:"診斷原題",d:"AI 指出問題與優點、判斷是否需要改，提出改寫方向後停下。",x:p1},
+          {t:"改寫",d:"先把紅色「＿＿」換成您選的方向，再貼上。",x:p2},
+          {t:"審題",d:"AI 檢查改寫後的題目是否仍測到原本的概念。",x:p3}];
+}
+
+/* ---------- 析卷 ---------- */
+function buildAna(){
+  const rows=st.ana.rows==="活動"?"活動":"單元";
+  const noRange=!st.unit.trim();
+  const info=[baseSettings(),`- 雙向細目表的列：依${rows}`];
+  if(st.ana.annot)info.push("- 試卷已逐題標註認知層次");
+  if(st.ana.upload)info.push("- 我另外上傳了試卷的 PDF 或圖片：圖表內容請以圖片為準，文字以我貼上的為準");
+  let rules=`【分析規則】
+1. 題號沿用試卷原本的編號。
+2. 逐小題分析：題組中的每一小題分別歸類${rows}與認知層次，不要整組歸成同一類。
+3. 依各大題的計分說明（每題、每格、每條線、每答、百分比）換算每一小題的配分；看不出來時先問我，不要猜。
+4. 需要看圖才能判斷的題目（看圖、連連看、作圖），${st.ana.upload?"若圖片不清楚，":""}標記「需要圖片」，不要猜測內容。
+5. 「備用題」不列入分析與配分。
+6. 科學閱讀的文章，一併檢查內容的科學正確性，以及題目是否只要在文章中找字句就能作答。
+7. 認知層次分記憶、了解、高層次（應用、分析、評鑑、創作），依 Bloom 認知領域教育目標分類修訂版。判斷為高層次時，要說明學生需要應用或分析什麼；熟悉的題型、只換了情境的題目，不一定是高層次。
+8. 試卷文字可能從 PDF 複製而來；若有順序錯亂、殘留注音符號或內容不完整，請指出位置，不要自行補齊。
+9. 以${stageName()}的範圍判斷是否超綱。
+10. ${st.lc.length?"學習內容":"課綱代碼"}只能使用十二年國教自然科學領域課綱的真實條目；不確定就寫「待確認」。`;
+  if(misList().length)rules+="\n11. 用我提供的迷思概念，檢查選擇題的誘答選項是否對應真實的錯誤想法。";
+  const out=st.ana.annot?`【輸出格式】
+試卷已標註認知層次。請把試卷的標註對應為：記→記憶、理→了解、分與應→高層次，然後：
+(1) 只列出你的判斷與試卷標註不同的題目：題號｜試卷標註｜你的判斷｜理由（一句）
+(2) 列出有其他問題的題目：題號｜發現的問題
+(3) 列出每一小題的${rows}與配分：題號｜${rows}｜配分`
+  :`【輸出格式】
+用表格逐小題列出：
+題號｜${rows}｜認知層次｜判斷理由（一句）｜配分｜素養題特徵（是／否）｜發現的問題（沒有就留空）
+「素養題特徵」指：必須讀懂情境中的資訊才能作答。`;
+  const flow=lite()?`這是第一批（一個大題，或約 10 小題）。分析完這一批後，用表格輸出【累積摘要】：各${rows}在記憶、了解、高層次的配分小計，以及已發現問題的題號。然後結束回覆，等我貼下一批。`
+    :`這是整份試卷。分析完成後結束回覆，等我要求彙整雙向細目表。`;
+  const first=noRange?`【開始前】
+我沒有提供考試範圍。請先根據試卷內容，列出你推斷的${rows}名稱，然後結束回覆，等我確認後再開始逐題分析。
+
+`:"";
+  const p1=`你是協助國小自然科教師檢查試卷品質的審題夥伴。我們分三個階段：逐題分析、彙整雙向細目表、改善建議。現在是第一階段。
+
+【試卷資訊】
+${info.join("\n")}
+
+${rules}
+
+${out}
+
+${first}【流程】
+${flow}
+
+【試卷內容${lite()?"（第一批）":""}】
+${st.ana.paper.trim()||"（請貼上試卷內容）"}
+
+（以上是試卷內容。請依規則分析，完成後依流程結束回覆。）`;
+
+  const pc=`接續分析下一批。規則與輸出格式和上一批相同。分析完後，把這一批加進【累積摘要】並輸出更新後的摘要，然後結束回覆。
+
+【下一批試卷內容】
+${B}（請貼上下一個大題；如果這是最後一批，請在最後註明「這是最後一批」）`;
+
+  const p2=`第二階段：彙整雙向細目表。試卷已全部分析完畢。
+
+1. 依臺北市國小自然領域雙向細目表格式彙整：以${rows}為列，記憶、了解、高層次（應用、分析、評鑑、創作）為欄，儲存格填配分，最後一列與最後一欄為合計。
+2. 核對總分是否為 100；不是的話，列出可能的原因。
+3. 如果試卷的範圍說明有宣告各${rows}的比例，核對實際配分是否一致。
+4. 高層次配分：
+   ・0 分：明確提醒必須補上高層次題目
+   ・低於 10 分：建議補強，並指出哪個${rows}適合加高層次題
+   ・超過 20 分：不要求減少，但列出標為高層次的題目，逐題複查是否名實相符
+5. 跨題檢查：有沒有題目會提示其他題目的答案。
+6. 素養題數據（只呈現數字，不評價好壞）：具素養題特徵的小題數、配分與佔比。若試卷有獨立的「素養題」大題，同時呈現「試卷標示」與「依情境必要性判斷」兩組數字。
+7. 列出需要圖片才能判斷、尚未確認的題目。
+請在這裡結束回覆，等我要求改善建議。`;
+
+  const p3=`第三階段：改善建議。
+
+1. 列出最需要優先修改的 ${lite()?3:5} 題：題號｜問題｜修改方向（一句）。可以改寫成素養題的，標註「可帶到改題模式」。
+2. 指出這份試卷的 2 個優點。
+3. 提醒我哪些事項 AI 無法確認、需要我自己檢查，例如：是否引用坊間測驗卷或考古題、40 分鐘內能否作答完畢、圖片中的內容。`;
+  const out2=[{t:"逐題分析",d:noRange?"AI 會先推斷單元請您確認，再逐題分析。":"AI 逐小題標註單元、認知層次與配分，完成後停下。",x:p1}];
+  if(lite())out2.push({t:"後續批次",d:"每貼一批就用一次，把紅色空格換成下一個大題。",x:pc,n:"1+"});
+  out2.push({t:"彙整雙向細目表",d:"全部批次分析完後貼上，產出配分表並檢查高層次比例。",x:p2},{t:"改善建議",d:"列出優先修改的題目，可帶到改題模式。",x:p3});
+  return out2;
+}
+
+/* ---------- render ---------- */
+function build(){
+  const miss=[], m=st.mode;
+  if(!stage())miss.push("年級");
+  if(m==="gen"){
+    if(!st.lc.length)miss.push("至少一條學習內容");
+    if(!st.aiSuggest&&!st.lp.length)miss.push("至少一條學習表現，或勾選「請 AI 建議」");
+    if(!st.gen.types.length)miss.push("至少一種題型");
+    const n=parseInt(st.gen.count,10);if(!(n>=1&&n<=maxCount()))miss.push(`題數（1–${maxCount()} 題）`);
+  }
+  if(m==="fix"&&!st.fix.orig.trim())miss.push("原題");
+  if(m==="ana"&&!st.ana.paper.trim())miss.push("試卷內容");
+  const box=$("missing");
+  if(miss.length){box.hidden=false;box.innerHTML="<b>還需要填寫：</b><ul>"+miss.map(x=>"<li>"+x+"</li>").join("")+"</ul>"}else box.hidden=true;
+
+  const sheets=m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
+  let i=0;
+  $("sheets").innerHTML=sheets.map(s=>{const no=s.n||String(++i);
+    return `<section class="sheet" style="margin-bottom:14px"><div class="sheet-h"><span class="num">${no}</span><div class="grow"><h2>${s.t}</h2><p>${s.d}</p></div><button type="button" class="btn primary" data-copy="${no}">複製</button></div><pre id="p_${no}">${esc(s.x).split(B).join('<span class="blank">'+B+'</span>')}</pre></section>`}).join("");
+  deidCheck(st.fix.orig,"deidFix");deidCheck(st.ana.paper,"deidAna");
+  
+}
+function touch(){}
+function all(){applyMode();renderPicker();renderTags();build()}
+
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.lc){const c=t.dataset.lc;st.lc=t.checked?[...st.lc,c]:st.lc.filter(x=>x!==c);touch();renderTags();build();return}
+  if(t.dataset.lp){const c=t.dataset.lp;st.lp=t.checked?[...st.lp,c]:st.lp.filter(x=>x!==c);touch();renderTags();build();return}
+  if(t.name==="type"){st.gen.types=TYPES.map(x=>x[0]).filter(k=>$("t_"+k).checked);touch();build();return}
+  const k=t.dataset.k;if(!k)return;
+  if(t.type==="radio"){
+    if(!t.checked)return;
+    if(k==="grade"){const old=stage();st.grade=t.value;if(stage()!==old){st.lc=[];st.lp=[]}}
+    else setP(k,t.value);
+    if(k!=="mode")touch();
+    all();return;
+  }
+  if(t.type==="checkbox"){setP(k,t.checked);touch();all();return}
+  if(t.tagName==="SELECT"){setP(k,t.value);touch();build()}
+});
+document.addEventListener("input",e=>{
+  const t=e.target,k=t.dataset.k;
+  if(!k||t.type==="radio"||t.type==="checkbox"||t.tagName==="SELECT")return;
+  setP(k,t.value);touch();build();
+});
+$("lcSearch").addEventListener("input",renderPicker);
+$("jumpBtn").addEventListener("click",()=>$("aside").scrollIntoView({behavior:"smooth",block:"start"}));
+try{new IntersectionObserver(es=>es.forEach(e=>$("jumpBtn").hidden=e.isIntersecting),{threshold:0}).observe($("aside"))}catch(e){}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.rmLc){st.lc=st.lc.filter(x=>x!==b.dataset.rmLc);touch();all()}
+  if(b.dataset.rmLp){st.lp=st.lp.filter(x=>x!==b.dataset.rmLp);touch();all()}
+  if(b.id==="clearBtn"||b.id==="exampleBtn"){const keep=st.mode,ex=b.id==="exampleBtn";st=clone(ex?EXAMPLE:BLANK);st.mode=keep;isExample=ex;$("lcSearch").value="";syncForm();all()}
+  if(b.dataset.copy){
+    const el=$("p_"+b.dataset.copy),txt=el.textContent;
+    const done=ok=>{b.textContent=ok?"已複製":"請按 Ctrl+C";setTimeout(()=>b.textContent="複製",1800)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r)};
+    const legacy=()=>{sel();let ok=false;try{ok=document.execCommand("copy")}catch(_){}done(ok)};
+    if(navigator.clipboard&&navigator.clipboard.writeText&&window.isSecureContext){navigator.clipboard.writeText(txt).then(()=>done(true),legacy)}else legacy();
+  }
+});
+syncForm();all();
+})();
+</script>
+</body>
+</html>
