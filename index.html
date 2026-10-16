@@ -104,6 +104,12 @@ aside{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;min-w
 .ready{border:1px solid var(--ok);border-left:5px solid var(--ok);background:var(--sheet);border-radius:6px;padding:10px 14px;font-size:14px;line-height:1.6}
 .ready b{color:var(--ok)}
 button.btn.glow{box-shadow:0 0 0 3px var(--ok)}
+.picks{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid var(--rule);background:var(--blue-wash)}
+.picks label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:500}
+.picks .rqm{color:var(--pen);font-weight:700;font-size:12px;margin-left:4px}
+.picks textarea{min-height:110px}
+.sheet.done .num::after{content:"✓";color:var(--ok);font-size:14px;margin-left:2px}
+.tip{font-size:13px;color:var(--ok);font-weight:500;padding:8px 14px 0}
 .missing{border:1px solid var(--pen);background:var(--pen-wash);color:var(--ink);border-radius:6px;padding:10px 14px;font-size:13.5px}
 .missing b{color:var(--pen)}
 .missing ul{margin:4px 0 0;padding-left:20px}
@@ -310,7 +316,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.2.5</span> · 2026-10-15</span>
+    <span>版本 <span class="code">v0.2.6</span> · 2026-10-15</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -492,6 +498,9 @@ function baseSettings(){
   s.push("- 教師觀察到的學生迷思概念："+(m.length?"\n"+m.map(x=>"  ・"+x).join("\n"):"未提供"));
   return s.join("\n");
 }
+const pv=k=>((st.pick||(st.pick={}))[k]||"").trim();
+const P=k=>pv(k)||B;
+const NEXT=t=>`\n回覆的最後，請原封不動加上這一段：\n【下一步】${t}`;
 const summary=(what)=>lite()?`\n最後用 5 行以內輸出【接續摘要】：${what}。如果之後要開新對話繼續，我會把這段摘要貼回來。`:"";
 
 /* ---------- 出題 ---------- */
@@ -523,7 +532,7 @@ ${k++}. 對齊檢查：簡短檢查學習內容、學習表現與題型是否搭
 ${types}
    每個情境附上：可測到的學習表現、為什麼必須讀懂情境才能作答、預估認知層次（記憶／了解／高層次）、是否需要附圖（需要的話用文字描述，由我自行繪製）。`;
   if(lite())p1+=`\n${k++}. 用 5 行以內輸出【接續摘要】：年級、學習內容與學習表現代碼、迷思概念、各情境的標題。`;
-  p1+=`\n請在這裡結束回覆，不要出題。等我選定情境${st.aiSuggest?"與學習表現":""}後再繼續。`;
+  p1+=NEXT("請回到命題網頁，在第 2 段填入您選擇的情境（例如 A），再按「複製」貼到這個對話。")+`\n請在這裡結束回覆，不要出題。等我選定情境${st.aiSuggest?"與學習表現":""}後再繼續。`;
 
   const req={mc:"單題選擇題：單選、四個選項。每個錯誤選項標註對應的迷思概念；不對應任何迷思的選項，說明它的誘答理由。",
     set:"題組：一個共同情境搭配 2–4 小題，由淺入深，至少一小題必須運用情境中的資料推理才能作答。",
@@ -533,8 +542,8 @@ ${types}
   let p2=`第二階段：出題。
 
 【我的選擇】
-- 情境：第 ${B} 個（如需修改：${B}）
-- 迷思概念：採用 ${B}${st.aiSuggest?`\n- 學習表現：採用 ${B}`:""}
+- 情境：${P("scene")}
+- 迷思概念：${pv("mis")||"全部採用"}${st.aiSuggest?`\n- 學習表現：${pv("lp")||"採用你建議的全部條目"}`:""}
 
 請依第一階段的設定與命題原則出題，共 ${n} 題，題型：${typeText()||"（未選）"}；認知層次分布：${st.gen.dist}${n>1?"，至少一題為高層次":""}。
 
@@ -549,7 +558,7 @@ ${cogRule()}
 
 【最後用表格整理】
 題號｜題型｜單元｜學習內容代碼｜學習表現代碼｜認知層次｜可診斷的迷思概念｜答案
-表格下方列出記憶、了解、高層次各有幾題。這個階段只出題，不要配分。`+summary("各題題號、題型、認知層次與答案")+`
+表格下方列出記憶、了解、高層次各有幾題。這個階段只出題，不要配分。`+summary("各題題號、題型、認知層次與答案")+NEXT("請先看過題目，再回到命題網頁按第 3 段的「複製」貼到這個對話，我會幫您審題。")+`
 請在這裡結束回覆，等我要求審題。`;
 
   const p3=`第三階段：審題。請以審題委員的角度檢查剛才的題目。先不要改寫，只提出問題與建議。
@@ -564,10 +573,10 @@ ${cogRule()}
 
 3. 列出需要我自行繪製或拍攝的圖表。
 
-4. 總結最需要優先修改的 3 個問題。`;
-  return [{t:"確認設定，提出情境",d:"AI 檢查搭配、列出迷思概念與情境後停下，等您選擇。",x:p1},
-          {t:"出題",d:"先把紅色「＿＿」換成您的選擇，再貼上。",x:p2},
-          {t:"審題",d:"AI 模擬學生作答，逐題檢核。",x:p3}];
+4. 總結最需要優先修改的 3 個問題。`+NEXT("審題完成。您可以直接請我依建議修改題目，或回到命題網頁重新設定再出題。");
+  return [{t:"確認設定，提出情境",d:"複製後貼到 AI 的新對話。AI 會提出情境並停下，等您選擇。",x:p1},
+          {t:"出題",d:"AI 回答第 1 段後，在下面填入您的選擇，再複製貼到同一個對話。",x:p2,nx:"AI 回答完後，在第 2 段填入您選擇的情境（AI 回答中的代號，例如 A），再按「複製」貼到同一個對話。",picks:[{k:"scene",lab:"您選擇的情境",ph:"例：A，或「A，但改成在教室進行」",req:1},{k:"mis",lab:"採用的迷思概念（選填，空白表示全部採用）",ph:"例：只用第 1 個"}].concat(st.aiSuggest?[{k:"lp",lab:"採用的學習表現（選填，空白表示採用 AI 建議的全部條目）",ph:"例：pa-Ⅱ-2、tr-Ⅱ-1"}]:[])},
+          {t:"審題",d:"AI 出題後，複製貼到同一個對話。",x:p3,nx:"AI 出完題目後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。"}];
 }
 
 /* ---------- 改題 ---------- */
@@ -594,7 +603,7 @@ ${st.fix.orig.trim()||"（請貼上原題）"}
 2. 修改說明（2–3 點）
 3. 認知層次：原題 → 改題（記憶／了解／高層次）
 4. 自我檢查：沒有讀情境的學生能不能答對？如果能，請先再修改一次才輸出。
-如果原題用來測基本概念已經很恰當、不需要改寫，請直接說明，只做必要的文字修飾。題目若有圖片，我會另外上傳。`;
+如果原題用來測基本概念已經很恰當、不需要改寫，請直接說明，只做必要的文字修飾。題目若有圖片，我會另外上傳。`+NEXT("如果不滿意，可以直接告訴我要怎麼調整，例如「情境換成校園」或「改成題組」。");
     return [{t:"快速改題",d:"一段提示詞，AI 直接輸出改寫後的題目與說明。",x:q}];
   }
   const sc=st.fix.scope||"中度", nd=lite()?2:3;
@@ -622,13 +631,14 @@ ${principles()}
 5. 判斷是否需要改寫。段考需要知識題與素養題搭配；如果這題用來測基本概念已經很恰當，請直接說明它適合在試卷中扮演的角色，然後結束回覆。
 6. 如果需要改寫，依上述改寫幅度提出 ${nd} 個改寫方向，每個說明：要改什麼、預估改寫後的認知層次、取捨。可參考的方向：
    增加情境必要性｜提供數據或材料讓學生分析｜把步驟固定的實驗改成結果未知的任務｜強化誘答選項的診斷力${lite()?"\n7. 用 5 行以內輸出【接續摘要】：原題想測的概念、原題認知層次、主要問題、各改寫方向的標題。":""}
+`+NEXT("請回到命題網頁，在第 2 段填入您選擇的改寫方向（例如 第 1 個），再按「複製」貼到這個對話。如果我判斷這題不需要改寫，就不用繼續。")+`
 請在這裡結束回覆，不要改寫。等我選定方向後再繼續。`;
 
   const p2=`第二階段：改寫。
 
 【我的選擇】
-- 改寫方向：第 ${B} 個
-- 補充要求：${B}（沒有可刪除這一行）
+- 改寫方向：${P("dir")}
+- 補充要求：${pv("extra")||"無"}
 
 請依「${sc}」的改寫幅度改寫，並附上：
 ・改寫後的題目與正確答案
@@ -637,7 +647,7 @@ ${principles()}
 ・改寫後的認知層次與一句理由，並寫出「原題：○○ → 改題：○○」
 
 【原題與改題對照表】
-${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處｜原題寫法｜改寫後｜對應的問題類型｜為什麼這樣改"}`+summary("改寫後的題目重點、答案與認知層次")+`
+${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處｜原題寫法｜改寫後｜對應的問題類型｜為什麼這樣改"}`+summary("改寫後的題目重點、答案與認知層次")+NEXT("請回到命題網頁按第 3 段的「複製」貼到這個對話，我會幫您審題。")+`
 請在這裡結束回覆，等我要求審題。`;
 
   const p3=`第三階段：審題。請檢查改寫後的題目。先不要再改寫，只提出問題與建議。
@@ -652,10 +662,10 @@ ${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處�
 
 3. 列出需要我自行繪製或拍攝的圖表。
 
-4. 給一個最值得做的修改建議。`;
-  return [{t:"診斷原題",d:"AI 指出問題與優點、判斷是否需要改，提出改寫方向後停下。",x:p1},
-          {t:"改寫",d:"先把紅色「＿＿」換成您選的方向，再貼上。",x:p2},
-          {t:"審題",d:"AI 檢查改寫後的題目是否仍測到原本的概念。",x:p3}];
+4. 給一個最值得做的修改建議。`+NEXT("審題完成。您可以直接請我依建議修改。");
+  return [{t:"診斷原題",d:"複製後貼到 AI 的新對話。AI 會提出改寫方向並停下。",x:p1},
+          {t:"改寫",d:"AI 回答第 1 段後，在下面填入您選的方向，再複製貼到同一個對話。",x:p2,nx:"AI 回答完後，在第 2 段填入您選擇的改寫方向（例如 第 1 個），再按「複製」貼到同一個對話。",picks:[{k:"dir",lab:"您選擇的改寫方向",ph:"例：第 1 個",req:1},{k:"extra",lab:"補充要求（選填）",ph:"例：情境改成校園裡的例子"}]},
+          {t:"審題",d:"AI 改寫後，複製貼到同一個對話。",x:p3,nx:"AI 改寫完後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。"}];
 }
 
 /* ---------- 析卷 ---------- */
@@ -686,10 +696,12 @@ function buildAna(){
 用表格逐小題列出：
 題號｜${rows}｜認知層次｜判斷理由（一句）｜配分｜素養題特徵（是／否）｜發現的問題（沒有就留空）
 「素養題特徵」指：必須讀懂情境中的資訊才能作答。`;
-  const flow=lite()?`這是第一批（一個大題，或約 10 小題）。分析完這一批後，用表格輸出【累積摘要】：各${rows}在記憶、了解、高層次的配分小計，以及已發現問題的題號。然後結束回覆，等我貼下一批。`
-    :`這是整份試卷。分析完成後結束回覆，等我要求彙整雙向細目表。`;
+  const flow=lite()?`這是第一批（一個大題，或約 10 小題）。分析完這一批後，用表格輸出【累積摘要】：各${rows}在記憶、了解、高層次的配分小計，以及已發現問題的題號。`+NEXT("請回到網頁，在「後續批次」貼上下一個大題，再按「複製」貼到這個對話；全部批次都分析完後，改複製第 2 段。")+`
+然後結束回覆，等我貼下一批。`
+    :`這是整份試卷。`+NEXT("請回到網頁按第 2 段的「複製」貼到這個對話，我會彙整雙向細目表。")+`
+分析完成後結束回覆，等我要求彙整雙向細目表。`;
   const first=noRange?`【開始前】
-我沒有提供考試範圍。請先根據試卷內容，列出你推斷的${rows}名稱，然後結束回覆，等我確認後再開始逐題分析。
+我沒有提供考試範圍。請先根據試卷內容，列出你推斷的${rows}名稱，並在最後加上「【下一步】請直接回覆『確認』，或寫出正確的名稱，我就會開始逐題分析。」然後結束回覆，等我確認後再開始逐題分析。
 
 `:"";
   const p1=`你是協助國小自然科教師檢查試卷品質的審題夥伴。我們分三個階段：逐題分析、彙整雙向細目表、改善建議。現在是第一階段。
@@ -709,10 +721,10 @@ ${st.ana.paper.trim()||"（請貼上試卷內容）"}
 
 （以上是試卷內容。請依規則分析，完成後依流程結束回覆。）`;
 
-  const pc=`接續分析下一批。規則與輸出格式和上一批相同。分析完後，把這一批加進【累積摘要】並輸出更新後的摘要，然後結束回覆。
+  const pc=`接續分析下一批。規則與輸出格式和上一批相同。分析完後，把這一批加進【累積摘要】並輸出更新後的摘要。回覆的最後，請原封不動加上：「【下一步】還有下一批，就回到網頁在『後續批次』貼上後複製；全部分析完，就複製第 2 段。」然後結束回覆。
 
 【下一批試卷內容】
-${B}（請貼上下一個大題；如果這是最後一批，請在最後註明「這是最後一批」）`;
+${P("batch")}`;
 
   const p2=`第二階段：彙整雙向細目表。試卷已全部分析完畢。
 
@@ -726,20 +738,22 @@ ${B}（請貼上下一個大題；如果這是最後一批，請在最後註明�
 5. 跨題檢查：有沒有題目會提示其他題目的答案。
 6. 素養題數據（只呈現數字，不評價好壞）：具素養題特徵的小題數、配分與佔比。若試卷有獨立的「素養題」大題，同時呈現「試卷標示」與「依情境必要性判斷」兩組數字。
 7. 列出需要圖片才能判斷、尚未確認的題目。
+`+NEXT("請回到網頁按第 3 段的「複製」貼到這個對話，我會提出改善建議。")+`
 請在這裡結束回覆，等我要求改善建議。`;
 
   const p3=`第三階段：改善建議。
 
 1. 列出最需要優先修改的 ${lite()?3:5} 題：題號｜問題｜修改方向（一句）。可以改寫成素養題的，標註「可帶到改題模式」。
 2. 指出這份試卷的 2 個優點。
-3. 提醒我哪些事項 AI 無法確認、需要我自己檢查，例如：是否引用坊間測驗卷或考古題、40 分鐘內能否作答完畢、圖片中的內容。`;
-  const out2=[{t:"逐題分析",d:noRange?"AI 會先推斷單元請您確認，再逐題分析。":"AI 逐小題標註單元、認知層次與配分，完成後停下。",x:p1}];
-  if(lite())out2.push({t:"後續批次",d:"每貼一批就用一次，把紅色空格換成下一個大題。",x:pc,n:"1+"});
-  out2.push({t:"彙整雙向細目表",d:"全部批次分析完後貼上，產出配分表並檢查高層次比例。",x:p2},{t:"改善建議",d:"列出優先修改的題目，可帶到改題模式。",x:p3});
+3. 提醒我哪些事項 AI 無法確認、需要我自己檢查，例如：是否引用坊間測驗卷或考古題、40 分鐘內能否作答完畢、圖片中的內容。`+NEXT("分析完成。需要改寫的題目，可以到命題網頁的「改題」模式處理。");
+  const out2=[{t:"逐題分析",d:noRange?"複製後貼到 AI 的新對話。AI 會先推斷單元請您確認，再逐題分析。":"複製後貼到 AI 的新對話。AI 逐小題分析，完成後停下。",x:p1}];
+  if(lite())out2.push({t:"後續批次",d:"每有一批就用一次：在下面貼上下一個大題，再複製貼到同一個對話。",x:pc,n:"1+",nx:"AI 分析完這一批後，在「後續批次」貼上下一個大題，再按「複製」貼到同一個對話。",picks:[{k:"batch",lab:"下一批試卷內容",ph:"貼上下一個大題。請先去識別化。",area:1,req:1}]});
+  out2.push({t:"彙整雙向細目表",d:"全部分析完後，複製貼到同一個對話。",x:p2,nx:lite()?"AI 分析完後，還有下一批就繼續用「後續批次」；全部分析完，再按第 2 段的「複製」貼到同一個對話。":"AI 分析完後，按第 2 段的「複製」貼到同一個對話，請 AI 彙整雙向細目表。"},{t:"改善建議",d:"彙整完成後，複製貼到同一個對話。",x:p3,nx:"AI 彙整完後，按第 3 段的「複製」貼到同一個對話，請 AI 提出改善建議。"});
   return out2;
 }
 
 /* ---------- render ---------- */
+let lastSig="";const copied=new Set();
 function build(){
   const miss=[], m=st.mode;
   if(!stage())miss.push("年級");
@@ -753,16 +767,27 @@ function build(){
   if(m==="ana"&&!st.ana.paper.trim())miss.push("試卷內容");
   const box=$("missing");
   if(miss.length){box.hidden=false;box.innerHTML="<b>還需要填寫：</b><ul>"+miss.map(x=>"<li>"+x+"</li>").join("")+"</ul>"}else box.hidden=true;
-  const okGen=m==="gen"&&!miss.length, rd=$("ready");
-  rd.hidden=!okGen;
-  if(okGen)rd.innerHTML="<b>必填內容已完成！</b>請按下方第 1 段提示詞的「複製」，貼到您要使用的 AI（ChatGPT、Gemini 或 Claude）的新對話中。AI 回覆後，再依序使用第 2、3 段。";
-  $("jumpBtn").textContent=okGen?"必填完成，複製第 1 段 ↓":"看提示詞 ↓";
-
   const sheets=m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
-  let i=0;
-  $("sheets").innerHTML=sheets.map(s=>{const no=s.n||String(++i);
-    return `<section class="sheet" style="margin-bottom:14px"><div class="sheet-h"><span class="num">${no}</span><div class="grow"><h2>${s.t}</h2><p>${s.d}</p></div><button type="button" class="btn primary" data-copy="${no}">複製</button></div><pre id="p_${no}">${esc(s.x).split(B).join('<span class="blank">'+B+'</span>')}</pre></section>`}).join("");
-  if(okGen){const c1=document.querySelector('[data-copy="1"]');if(c1)c1.classList.add("glow")}
+  let i=0;sheets.forEach(x=>{x.no=x.n||String(++i);x.id=x.no.replace("+","p")});
+  const sig=[m,st.level,st.fix.way,st.aiSuggest,sheets.map(x=>x.no+x.t+(x.picks||[]).map(p=>p.k).join("")).join("|")].join("/");
+  if(sig!==lastSig){
+    lastSig=sig;copied.clear();
+    $("sheets").innerHTML=sheets.map(x=>`<section class="sheet" id="sh_${x.id}" style="margin-bottom:14px"><div class="sheet-h"><span class="num">${x.no}</span><div class="grow"><h2>${x.t}</h2><p id="d_${x.id}"></p></div><button type="button" class="btn primary" data-copy="${x.id}">複製</button></div>`+
+      (x.picks?`<div class="picks">`+x.picks.map(pk=>`<label for="pk_${pk.k}">${pk.lab}${pk.req?'<span class="rqm">必填</span>':""}${pk.area?`<textarea id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}"></textarea>`:`<input type="text" id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}">`}</label>`).join("")+`</div>`:"")+
+      `<div class="tip" id="tip_${x.id}" hidden></div><pre id="p_${x.id}"></pre></section>`).join("");
+    sheets.forEach(x=>(x.picks||[]).forEach(pk=>{$("pk_"+pk.k).value=(st.pick||{})[pk.k]||""}));
+  }
+  sheets.forEach(x=>{$("d_"+x.id).textContent=x.d;$("p_"+x.id).innerHTML=esc(x.x).split(B).join('<span class="blank">'+B+'</span>')});
+  const ok=!miss.length, rd=$("ready");
+  const nxt=sheets.find(x=>!copied.has(x.id)&&x.id!=="1p")||null;
+  sheets.forEach(x=>{$("sh_"+x.id).classList.toggle("done",copied.has(x.id));const c=document.querySelector(`[data-copy="${x.id}"]`);c.classList.toggle("glow",ok&&nxt===x)});
+  rd.hidden=!ok;
+  if(ok){
+    if(!copied.size)rd.innerHTML="<b>必填內容已完成！</b>請按下方第 1 段提示詞的「複製」，貼到您要使用的 AI（ChatGPT、Gemini 或 Claude）的新對話中。";
+    else if(nxt)rd.innerHTML="<b>下一步：</b>"+esc(nxt.nx||"AI 回答完後，按下一段的「複製」貼到同一個對話。");
+    else rd.innerHTML="<b>全部段落都已使用。</b>需要調整時，可以直接在 AI 對話中告訴它。";
+  }
+  $("jumpBtn").textContent=!ok?"看提示詞 ↓":!copied.size?"必填完成，複製第 1 段 ↓":"看下一步 ↓";
   deidCheck(st.fix.orig,"deidFix");deidCheck(st.ana.paper,"deidAna");
   
 }
@@ -791,16 +816,20 @@ document.addEventListener("input",e=>{
   setP(k,t.value);touch();build();
 });
 $("lcSearch").addEventListener("input",renderPicker);
+document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset.pick;if(!k)return;(st.pick||(st.pick={}))[k]=e.target.value;build()});
 $("jumpBtn").addEventListener("click",()=>$("aside").scrollIntoView({behavior:"smooth",block:"start"}));
 try{new IntersectionObserver(es=>es.forEach(e=>$("jumpBtn").hidden=e.isIntersecting),{threshold:0}).observe($("aside"))}catch(e){}
 document.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.rmLc){st.lc=st.lc.filter(x=>x!==b.dataset.rmLc);touch();all()}
   if(b.dataset.rmLp){st.lp=st.lp.filter(x=>x!==b.dataset.rmLp);touch();all()}
-  if(b.id==="clearBtn"||b.id==="exampleBtn"){const keep=st.mode,ex=b.id==="exampleBtn";st=clone(ex?EXAMPLE:BLANK);st.mode=keep;isExample=ex;$("lcSearch").value="";syncForm();all()}
+  if(b.id==="clearBtn"||b.id==="exampleBtn"){const keep=st.mode,ex=b.id==="exampleBtn";st=clone(ex?EXAMPLE:BLANK);st.mode=keep;st.pick={};lastSig="";isExample=ex;$("lcSearch").value="";syncForm();all()}
   if(b.dataset.copy){
     const el=$("p_"+b.dataset.copy),txt=el.textContent;
-    const done=ok=>{b.textContent=ok?"已複製":"請按 Ctrl+C";setTimeout(()=>b.textContent="複製",1800)};
+    const no=b.dataset.copy;
+    const done=ok=>{b.textContent=ok?"已複製":"請按 Ctrl+C";setTimeout(()=>b.textContent="複製",1800);
+      const tp=$("tip_"+no);tp.hidden=false;tp.textContent=ok?"已複製！請貼到 AI 對話中，等 AI 回答完，再回到這裡看下一步。":"已選取文字，請按 Ctrl+C（手機請長按選擇「拷貝」），再貼到 AI 對話中。";
+      if(no!=="1p")copied.add(no);build()};
     const sel=()=>{const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r)};
     const legacy=()=>{sel();let ok=false;try{ok=document.execCommand("copy")}catch(_){}done(ok)};
     if(navigator.clipboard&&navigator.clipboard.writeText&&window.isSecureContext){navigator.clipboard.writeText(txt).then(()=>done(true),legacy)}else legacy();
