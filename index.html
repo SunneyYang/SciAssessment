@@ -104,6 +104,26 @@ aside{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;min-w
 .ready{border:1px solid var(--ok);border-left:5px solid var(--ok);background:var(--sheet);border-radius:6px;padding:10px 14px;font-size:14px;line-height:1.6}
 .ready b{color:var(--ok)}
 button.btn.glow{box-shadow:0 0 0 3px var(--ok)}
+.steps{display:flex;gap:4px;margin-bottom:12px}
+.stp{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;font-size:12px;line-height:1.3;padding:8px 2px;border-radius:5px;background:var(--sheet);border:1px solid var(--rule);color:var(--ink-soft);cursor:pointer}
+.stp b{font-size:15px}
+.stp[disabled]{cursor:default}
+.stp.cur{background:var(--blue);border-color:var(--blue);color:var(--sheet);font-weight:700}
+.stp.done{color:var(--ok);border-color:var(--ok)}
+.guide .g-h{padding:14px 16px 2px}
+.g-k{font-size:12.5px;color:var(--pen);font-weight:700;letter-spacing:.06em}
+.guide h2{font-family:var(--f-display);font-size:20px;margin:2px 0 0;line-height:1.35}
+.g-p{margin:6px 16px 0;font-size:14px;color:var(--ink-soft)}
+.todo{margin:8px 0 10px;padding:0 16px 0 36px;display:flex;flex-direction:column;gap:7px;font-size:14.5px;line-height:1.6}
+.g-act{padding:4px 16px 10px}
+button.btn.big{width:100%;padding:13px;font-size:16px;font-weight:700}
+button.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+.g-pre{padding:0 16px 12px}
+.g-pre pre{border:1px solid var(--rule);border-radius:4px;margin-top:8px;max-height:240px}
+.g-nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid var(--rule)}
+button.btn.next{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700}
+.g-hint{font-size:12.5px;color:var(--ink-soft);margin:0;padding:0 16px 12px;text-align:right}
+.guide .tip{padding:8px 0 0}
 .picks{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid var(--rule);background:var(--blue-wash)}
 .picks label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:500}
 .picks .rqm{color:var(--pen);font-weight:700;font-size:12px;margin-left:4px}
@@ -316,7 +336,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.2.6</span> · 2026-10-15</span>
+    <span>版本 <span class="code">v0.2.7</span> · 2026-10-15</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -393,7 +413,7 @@ $("grades").innerHTML=GRADES.map(g=>`<label class="chip"><input type="radio" nam
 $("types").innerHTML=TYPES.map(t=>`<label class="chip"><input type="checkbox" name="type" id="t_${t[0]}" value="${t[0]}"><span>${t[1]}</span></label>`).join("");
 
 const HOW={
-  gen:["<b>1</b> 貼上第一段，AI 提出情境與迷思概念後停下","<b>2</b> 把第二段紅色空格換成您的選擇，AI 出題","<b>3</b> 貼上第三段，AI 模擬學生作答並審題"],
+  gen:["<b>1</b> 填好出題設定","<b>2</b> 依「出題步驟」區的說明，把提示詞複製到 AI","<b>3</b> 每一步完成後，按綠色按鈕前往下一步"],
   fix:["<b>1</b> 貼上第一段，AI 診斷原題並提出改寫方向","<b>2</b> 在第二段填入您選的方向，AI 改寫","<b>3</b> 貼上第三段，AI 審查改寫後的題目"],
   ana:["<b>1</b> 貼上第一段，AI 逐題分析","<b>2</b> 精簡模式依序貼上後續批次","<b>3</b> 貼上彙整與建議兩段，取得雙向細目表"]};
 const SCOPE={"輕度":"輕度：保留原題架構，只補上必要的情境或修改選項。","中度":"中度：重寫情境，但保留題型和想測的概念。","大幅":"大幅：可以改變題型，例如把選擇題改成題組或非選題。"};
@@ -753,7 +773,55 @@ ${P("batch")}`;
 }
 
 /* ---------- render ---------- */
-let lastSig="";const copied=new Set();
+let lastSig="",gSig="",gstep=1,gmax=1;const copied=new Set();
+function renderGuided(sheets,miss){
+  lastSig="";
+  const ok=!miss.length, disp=ok?Math.min(Math.max(1,gstep),4):0;
+  if(ok)gmax=Math.max(gmax,disp);
+  const names=["設定","提出情境","選情境出題","審題","完成"];
+  const steps=names.map((n,i)=>{const cls=i===disp?"cur":(i<disp?"done":"");const can=ok&&i>=1&&i<=gmax;
+    return `<button type="button" class="stp ${cls}" ${can&&i!==disp?`data-gstep="${i}"`:"disabled"}><b>${i<disp?"✓":(i===0?"0":i===4?"★":i)}</b>${n}</button>`}).join("");
+  const sig=disp+"/"+st.aiSuggest+"/"+st.level;
+  const nai=lite()?3:5;
+  if(sig!==gSig){
+    gSig=sig;let h="";
+    if(disp===0){
+      h=`<section class="sheet guide"><div class="g-h"><span class="g-k">開始之前</span><h2>先完成出題設定</h2></div><p class="g-p">請在設定區填寫下列必填項目，填好後這裡會告訴您第一步要做什麼：</p><ul class="todo" id="g_miss"></ul></section>`;
+    }else if(disp===4){
+      h=`<section class="sheet guide"><div class="g-h"><span class="g-k">全部完成</span><h2>出題流程完成！</h2></div><p class="g-p">接下來您可以：</p><ul class="todo">
+        <li><b>請 AI 依審題建議修改</b>：直接在同一個 AI 對話中輸入，例如「請依審題建議修改第 2 題」。</li>
+        <li><b>換情境或題型再出一次</b>：按下方「回到步驟 1」，或先修改設定再重新開始。</li>
+        <li><b>想再加強某一題</b>：把題目複製到本網頁的「改題」模式。</li></ul>
+        <div class="g-nav"><button type="button" class="btn" data-gstep="3">← 回上一步</button><button type="button" class="btn" data-gstep="1">回到步驟 1</button></div></section>`;
+    }else{
+      const x=sheets[disp-1];
+      const todo={1:[`按下方的「複製第 1 段提示詞」。`,`打開 ChatGPT、Gemini 或 Claude，<b>開一個新對話</b>，貼上後送出。`,`等 AI 回答完。AI 會列出迷思概念和 ${nai} 個情境，回答最後會出現【下一步】。`,`回到這裡，按「AI 已回答，前往步驟 2」。`],
+        2:[`看 AI 列出的情境，選一個最合適的，把<b>代號（例如 A）</b>填在下面。`,`按「複製第 2 段提示詞」。`,`回到<b>同一個 AI 對話</b>，貼上後送出。`,`等 AI 出完題目（最後會出現【下一步】），按「AI 已出完題，前往步驟 3」。`],
+        3:[`先看過 AI 出的題目。`,`按「複製第 3 段提示詞」，貼到<b>同一個 AI 對話</b>送出。`,`AI 會模擬學生作答、逐題檢核。看完後按「審題完成」。`]}[disp];
+      const title={1:"請 AI 提出情境",2:"選擇情境，請 AI 出題",3:"請 AI 審題"}[disp];
+      const nextLab={1:"AI 已回答，前往步驟 2 →",2:"AI 已出完題，前往步驟 3 →",3:"審題完成 ✓"}[disp];
+      h=`<section class="sheet guide" id="sh_${disp}"><div class="g-h"><span class="g-k">步驟 ${disp}／3</span><h2>${title}</h2></div>
+        <ol class="todo">${todo.map(t=>"<li>"+t+"</li>").join("")}</ol>`+
+        (x.picks?`<div class="picks">`+x.picks.map(pk=>`<label for="pk_${pk.k}"><span>${pk.lab}${pk.req?'<span class="rqm">必填</span>':""}</span><input type="text" id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}"></label>`).join("")+`</div>`:"")+
+        `<div class="g-act"><button type="button" class="btn primary big" data-copy="${disp}" id="g_copy">複製第 ${disp} 段提示詞</button><div class="tip" id="tip_${disp}" hidden></div></div>
+        <details class="g-pre"><summary>看第 ${disp} 段提示詞的內容（可略過）</summary><pre id="p_${disp}"></pre></details>
+        <div class="g-nav">${disp>1?`<button type="button" class="btn" data-gstep="${disp-1}">← 回上一步</button>`:"<span></span>"}<button type="button" class="btn next" id="g_next" data-gstep="${disp+1}">${nextLab}</button></div>
+        <p class="g-hint" id="g_hint">先按上面的「複製」，貼到 AI 送出，這個按鈕才會亮起。</p></section>`;
+    }
+    $("sheets").innerHTML=`<nav class="steps" aria-label="出題進度">${steps}</nav>`+h;
+    if(disp>=1&&disp<=3)(sheets[disp-1].picks||[]).forEach(pk=>{$("pk_"+pk.k).value=(st.pick||{})[pk.k]||""});
+  }else{const nv=$("sheets").querySelector(".steps");if(nv)nv.innerHTML=steps}
+  if(disp===0)$("g_miss").innerHTML=miss.map(x=>"<li>"+x+"</li>").join("");
+  if(disp>=1&&disp<=3){
+    const x=sheets[disp-1];$("p_"+disp).innerHTML=esc(x.x).split(B).join('<span class="blank">'+B+'</span>');
+    const need=(x.picks||[]).filter(pk=>pk.req&&!pv(pk.k));
+    const cb=$("g_copy");cb.disabled=!!need.length;
+    if(cb.textContent!=="已複製")cb.textContent=need.length?"請先填入"+need.map(pk=>pk.lab.replace(/（.*/,"")).join("、"):`複製第 ${disp} 段提示詞`;
+    const done=copied.has(String(disp));$("g_next").disabled=!done;$("g_hint").hidden=done;
+    $("g_next").classList.toggle("glow",done);
+  }
+  $("jumpBtn").textContent=disp===0?"看出題步驟 ↓":disp===4?"看完成後的建議 ↓":`前往步驟 ${disp} ↓`;
+}
 function build(){
   const miss=[], m=st.mode;
   if(!stage())miss.push("年級");
@@ -768,6 +836,8 @@ function build(){
   const box=$("missing");
   if(miss.length){box.hidden=false;box.innerHTML="<b>還需要填寫：</b><ul>"+miss.map(x=>"<li>"+x+"</li>").join("")+"</ul>"}else box.hidden=true;
   const sheets=m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
+  if(m==="gen"){box.hidden=true;$("ready").hidden=true;renderGuided(sheets,miss);deidCheck(st.fix.orig,"deidFix");deidCheck(st.ana.paper,"deidAna");return}
+  gSig="";
   let i=0;sheets.forEach(x=>{x.no=x.n||String(++i);x.id=x.no.replace("+","p")});
   const sig=[m,st.level,st.fix.way,st.aiSuggest,sheets.map(x=>x.no+x.t+(x.picks||[]).map(p=>p.k).join("")).join("|")].join("/");
   if(sig!==lastSig){
@@ -804,6 +874,7 @@ document.addEventListener("change",e=>{
     if(!t.checked)return;
     if(k==="grade"){const old=stage();st.grade=t.value;if(stage()!==old){st.lc=[];st.lp=[]}}
     else setP(k,t.value);
+    if(k==="mode"){copied.clear();gstep=1;gmax=1;gSig=""}
     if(k!=="mode")touch();
     all();return;
   }
@@ -821,13 +892,14 @@ $("jumpBtn").addEventListener("click",()=>$("aside").scrollIntoView({behavior:"s
 try{new IntersectionObserver(es=>es.forEach(e=>$("jumpBtn").hidden=e.isIntersecting),{threshold:0}).observe($("aside"))}catch(e){}
 document.addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.gstep&&!b.disabled){gstep=+b.dataset.gstep;build();const g=$("sheets");if(g&&window.innerWidth<=900)g.scrollIntoView({behavior:"smooth",block:"start"});return}
   if(b.dataset.rmLc){st.lc=st.lc.filter(x=>x!==b.dataset.rmLc);touch();all()}
   if(b.dataset.rmLp){st.lp=st.lp.filter(x=>x!==b.dataset.rmLp);touch();all()}
-  if(b.id==="clearBtn"||b.id==="exampleBtn"){const keep=st.mode,ex=b.id==="exampleBtn";st=clone(ex?EXAMPLE:BLANK);st.mode=keep;st.pick={};lastSig="";isExample=ex;$("lcSearch").value="";syncForm();all()}
+  if(b.id==="clearBtn"||b.id==="exampleBtn"){const keep=st.mode,ex=b.id==="exampleBtn";st=clone(ex?EXAMPLE:BLANK);st.mode=keep;st.pick={};lastSig="";gSig="";gstep=1;gmax=1;copied.clear();isExample=ex;$("lcSearch").value="";syncForm();all()}
   if(b.dataset.copy){
     const el=$("p_"+b.dataset.copy),txt=el.textContent;
     const no=b.dataset.copy;
-    const done=ok=>{b.textContent=ok?"已複製":"請按 Ctrl+C";setTimeout(()=>b.textContent="複製",1800);
+    const done=ok=>{const ol=b.textContent;b.textContent=ok?"已複製":"請按 Ctrl+C";setTimeout(()=>{b.textContent=ol;build()},1800);
       const tp=$("tip_"+no);tp.hidden=false;tp.textContent=ok?"已複製！請貼到 AI 對話中，等 AI 回答完，再回到這裡看下一步。":"已選取文字，請按 Ctrl+C（手機請長按選擇「拷貝」），再貼到 AI 對話中。";
       if(no!=="1p")copied.add(no);build()};
     const sel=()=>{const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r)};
