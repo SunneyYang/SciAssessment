@@ -195,6 +195,7 @@ footer .code{font-family:var(--f-code)}
             <input type="text" id="unit" data-k="unit" placeholder="例：熱的傳播">
           </label>
         </div>
+        <span class="hint" data-modes="gen fix">單元名稱為選填，只用來標示雙向細目表的單元欄，不影響出題。</span>
         <span class="hint strong" id="unitHint" hidden>建議填寫考試範圍的單元名稱，多個單元用頓號分隔，分析會更準確。沒填時，AI 會先推斷單元請您確認。</span>
         <label class="lab" for="activity" data-modes="gen fix">本單元重要實驗或活動
           <span class="hint">簡短描述學生做過的實驗。AI 會以這段描述為準，不會自行猜測教科書內容。</span>
@@ -336,7 +337,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.2.7</span> · 2026-10-15</span>
+    <span>版本 <span class="code">v0.2.8</span> · 2026-10-15</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -502,7 +503,8 @@ function principles(){
 function cogRule(){
   return `【雙向細目表規範（臺北市國小自然領域格式）】
 - 認知層次分三類：記憶、了解、高層次（應用、分析、評鑑、創作），依 Bloom 認知領域教育目標分類修訂版。
-- 每題標註認知層次並附一句理由；標為高層次的題目，要說明學生需要應用或分析什麼。`;
+- 每題標註認知層次並附一句理由；標為高層次的題目，要說明學生需要應用或分析什麼。
+- 單元欄：${st.unit.trim()?"使用「"+st.unit.trim()+"」":"我沒有填單元名稱，請改用學習內容代碼表示，不要自行編造單元名稱"}。`;
 }
 function baseSettings(){
   const s=[`- 年級：${gradeName()}（${stageName()}）`];
