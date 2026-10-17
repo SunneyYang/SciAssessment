@@ -133,14 +133,10 @@ button.btn.next{background:var(--ok);border-color:var(--ok);color:#fff;font-weig
 .goal b{display:block;font-size:14.5px;font-weight:600;line-height:1.4}
 .goal small{display:block;font-size:12.5px;color:var(--ink-soft);line-height:1.5}
 .goal:has(input:checked){border-color:var(--blue);background:var(--blue-wash)}
-.tweaks{display:flex;flex-direction:column}
-.tw{padding:10px 14px;border-bottom:1px solid var(--rule)}
-.tw:last-child{border-bottom:0}
-.tw-h{display:flex;align-items:center;gap:10px}
-.tw-h span{flex:1;font-size:14.5px;font-weight:500}
-.tw details{margin-top:4px;font-size:12.5px;color:var(--ink-soft)}
-.tw details pre{margin:6px 0 0}
-.tw .tip{padding:6px 0 0}
+.num.opt{font-family:var(--f-body,inherit);font-size:12px;font-weight:700;color:var(--blue);border:1px solid var(--blue);border-radius:999px;padding:2px 8px;min-width:0}
+.sheet.opt{border-style:dashed}
+.picks .goal{flex-direction:row;gap:10px;font-weight:400}
+.tw-how{margin:0;padding-left:20px;font-size:13.5px;font-weight:400;line-height:1.7}
 .picks{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid var(--rule);background:var(--blue-wash)}
 .picks label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:500}
 .picks .rqm{color:var(--pen);font-weight:700;font-size:12px;margin-left:4px}
@@ -359,7 +355,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.3.0</span> · 2026-10-17</span>
+    <span>版本 <span class="code">v0.3.1</span> · 2026-10-17</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -437,7 +433,7 @@ $("types").innerHTML=TYPES.map(t=>`<label class="chip"><input type="checkbox" na
 
 const HOW={
   gen:["<b>1</b> 填好出題設定","<b>2</b> 依「出題步驟」區的說明，把提示詞複製到 AI","<b>3</b> 每一步完成後，按綠色按鈕前往下一步"],
-  fix:["<b>1</b> 貼上第一段，AI 診斷原題並提出改寫方向","<b>2</b> 在第二段填入您選的方向，AI 改寫","<b>3</b> 貼上第三段，AI 審查改寫後的題目","<b>＋</b> 想微調，用最下面「再調整」的按鈕"],
+  fix:["<b>1</b> 貼上第一段，AI 診斷原題並提出改寫方向","<b>2</b> 在第二段填入您選的方向，AI 改寫","<b>3</b> 貼上第三段，AI 審查改寫後的題目","<b>選用</b> 改寫後不滿意，用「想再改一下？」勾選要怎麼改"],
   ana:["<b>1</b> 貼上第一段，AI 逐題分析","<b>2</b> 精簡模式依序貼上後續批次","<b>3</b> 貼上彙整與建議兩段，取得雙向細目表"]};
 const GOALS=[
   ["mem","這題只考背誦，想提高層次","改成要判讀數據、圖表或實驗紀錄才能回答","把原題改成需要判讀數據、圖表或實驗紀錄才能回答，讓學生比較、解釋或推論，而不是回想課本的句子。數據要科學上合理。"],
@@ -484,7 +480,7 @@ function applyMode(){
   document.querySelectorAll("[data-req]").forEach(el=>{const map=Object.fromEntries(el.dataset.req.split(",").map(x=>x.split(":")));el.textContent=map[m];el.className="rq "+(map[m]==="必填"?"req":"opt")});
   $("modeNote").textContent={gen:"出題：從課綱條目開始，設計新的素養題",fix:"改題：把手上的舊題目改成素養題",ana:"試卷分析：檢查一份命好的試卷"}[m];
   $("modeSec").textContent={gen:"出題設定",fix:"改題設定",ana:"試卷分析設定"}[m];
-  $("how").innerHTML=(qf?["<b>1</b> 貼上原題、勾選想怎麼改，複製第 1 段貼到 AI","<b>2</b> AI 改好後，複製第 2 段請 AI 審題","<b>＋</b> 想微調，用最下面「再調整」的按鈕"]:HOW[m]).map(x=>"<li>"+x+"</li>").join("");
+  $("how").innerHTML=(qf?["<b>1</b> 貼上原題、勾選想怎麼改，複製第 1 段貼到 AI","<b>選用</b> 不滿意，用「想再改一下？」勾選要怎麼改","<b>2</b> 滿意後，複製第 2 段請 AI 審題"]:HOW[m]).map(x=>"<li>"+x+"</li>").join("");
   $("unitLab").textContent=m==="ana"?"考試範圍（單元名稱）":"單元名稱";
   $("unitHint").hidden=m!=="ana";
   $("bookLegend").firstChild.textContent=m==="ana"?"教科書與考試範圍":"教科書與單元";
@@ -653,16 +649,22 @@ ${P("revAsk")}
 
 /* ---------- 改題 ---------- */
 const TWEAKS=[
-  ["情境換成學校裡的場景","把情境換成學生在學校裡會遇到的場景（例如教室、校園、營養午餐、校外教學）。"],
-  ["換一個完全不同的情境","保留想測的概念，換一個完全不同的情境重新改寫。"],
-  ["難度降低一點","降低一點難度：減少需要同時處理的資訊、用詞更簡單，但仍然要讀懂情境才能作答。"],
-  ["提高到高層次","提高到高層次：加入需要比較、分析數據或推論的部分，並說明學生要分析什麼。"],
-  ["改成題組","用同一個情境改成 2–3 小題的題組，由淺到深（讀出資料 → 解釋原因 → 應用到新情況），每小題附答案與認知層次。"],
-  ["錯誤選項更有診斷力","依學生常見的迷思概念重寫錯誤選項，並逐一說明每個錯誤選項對應的迷思。"]];
-function tweakSheet(){
-  return {n:"+",t:"再調整（選用）",d:"對改好的題目不滿意？挑一個按「複製」，貼到同一個對話。可以重複使用。",opt:1,
-    tweaks:TWEAKS.map(([lab,ask])=>({lab,x:`請修改你剛才改寫的題目（以最新的版本為準）：${ask}
-其他要求不變。請輸出修改後的完整題目、答案、一句修改說明，以及認知層次。`+NEXT("還想調整的話，可以回到命題網頁的「再調整」選其他方式，或直接告訴我。滿意後，建議用網頁上的審題提示詞請我檢查。")}))};
+  ["school","情境換成學校裡的場景","例如教室、校園、營養午餐、校外教學","把情境換成學生在學校裡會遇到的場景（例如教室、校園、營養午餐、校外教學）。"],
+  ["newctx","換一個完全不同的情境","想測的概念不變","保留想測的概念，換一個完全不同的情境重新改寫。"],
+  ["easier","難度降低一點","資訊少一點、用詞簡單一點","降低一點難度：減少需要同時處理的資訊、用詞更簡單，但仍然要讀懂情境才能作答。"],
+  ["higher","提高到高層次","加入比較、分析數據或推論","提高到高層次：加入需要比較、分析數據或推論的部分，並說明學生要分析什麼。"],
+  ["set","改成題組","同一個情境出 2–3 小題","用同一個情境改成 2–3 小題的題組，由淺到深（讀出資料 → 解釋原因 → 應用到新情況），每小題附答案與認知層次。"],
+  ["dis","錯誤選項更有診斷力","每個錯誤選項對應一個迷思","依學生常見的迷思概念重寫錯誤選項，並逐一說明每個錯誤選項對應的迷思。"]];
+const TW=Object.fromEntries(TWEAKS.map(t=>[t[0],t]));
+const twSel=()=>((st.pick||{}).tw||[]).filter(k=>TW[k]);
+function tweakSheet(after,review){
+  const sel=twSel(), ex=pv("twx"), asks=sel.map(k=>TW[k][3]);
+  if(ex)asks.push(ex);
+  const x=`請修改你剛才改寫的題目（如果已經改過不只一次，以最新的版本為準）：
+${asks.length?asks.map((a,n)=>`${n+1}. ${a}`).join("\n"):B}
+其他要求不變。請輸出修改後的完整題目、答案、一句修改說明，以及認知層次。`+NEXT(`請先看看修改後的題目。還想改，回到命題網頁的「想再改一下？」重新勾選，再複製貼過來；滿意了，就按第 ${review} 段「審題」的「複製」貼到這個對話。`);
+  return {n:"選用",idx:"p",t:"想再改一下？",d:`看完 AI 改好的題目，覺得不夠理想才用；滿意的話跳過這裡，直接做第 ${review} 段審題。`,opt:1,tweak:1,review,x,
+    need:!asks.length};
 }
 function buildFix(){
   if(st.fix.way!=="full"){
@@ -692,7 +694,7 @@ ${gk.length?gk.map((k,n)=>`${n+1}. ${GOAL[k][3]}`).join("\n"):"我沒有指定�
 3. 認知層次：原題 → 改題（記憶／了解／高層次）
 4. 這次用的改題方法：用一句話寫出來，讓我下次可以自己套用
 5. 自我檢查：沒有讀情境的學生能不能答對？如果能，請先再修改一次才輸出。
-如果原題用來測基本概念已經很恰當、不需要改寫，請直接說明，只做必要的文字修飾。題目若有圖片，我會另外上傳。`+NEXT("建議回到命題網頁，按第 2 段「審題」的「複製」貼到這個對話，請我檢查改好的題目。想先調整題目，可以用網頁上「再調整」的按鈕，或直接告訴我要怎麼改。");
+如果原題用來測基本概念已經很恰當、不需要改寫，請直接說明，只做必要的文字修飾。題目若有圖片，我會另外上傳。`+NEXT("請先看看改好的題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改，再複製貼過來；滿意了，就按第 2 段「審題」的「複製」貼到這個對話。");
     const q2=`請審查你剛才改寫的題目（如果後來有調整，以最新的版本為準）。先不要再改寫，只提出問題與建議。
 
 1. 模擬作答：扮演下列學生作答，寫出他會選的答案和理由（每人 1–2 句）。
@@ -703,10 +705,10 @@ ${gk.length?gk.map((k,n)=>`${n+1}. ${GOAL[k][3]}`).join("\n"):"我沒有指定�
 2. 檢核下列項目，只列出「需修改」的項目與原因：
    仍測到原本想測的概念｜不是「題目變長，但沒有變得更素養」｜科學內容正確｜答案唯一｜未超出${stageName()}的範圍｜閱讀負擔適當｜不依賴特定地區或生活經驗${gk.length?"｜有做到我想改的方向":""}
 
-3. 給一個最值得做的修改建議。`+NEXT("審題完成。您可以直接請我依建議修改，或回到命題網頁用「再調整」的按鈕。");
+3. 給一個最值得做的修改建議。`+NEXT("審題完成。您可以直接告訴我「請依建議修改」，或回到命題網頁的「想再改一下？」勾選要怎麼改。");
     return [{t:"快速改題",d:"一段提示詞，AI 直接輸出改寫後的題目與說明。",x:q},
-            {t:"審題（建議）",d:"AI 改好題目後，複製貼到同一個對話，請 AI 檢查。",x:q2,nx:"AI 改好題目後，建議按第 2 段「審題」的「複製」貼到同一個對話。想先調整題目，可以用最下面「再調整」的按鈕。"},
-            tweakSheet()];
+            tweakSheet(1,2),
+            {t:"審題（建議）",d:"題目滿意後，複製貼到同一個對話，請 AI 檢查。",x:q2,nx:"AI 改好題目後，先看看題目：想再改，用下面的「想再改一下？」；滿意了，按第 2 段「審題」的「複製」貼到同一個對話。"}];
   }
   const sc=st.fix.scope||"中度", nd=lite()?2:3;
   const p1=`你是協助國小自然科教師把舊題目改寫成「素養導向試題」的夥伴。我們分三個階段：診斷、改寫、審題。現在是第一階段：只診斷，不改寫。
@@ -750,10 +752,10 @@ ${principles()}
 ・改寫後的認知層次與一句理由，並寫出「原題：○○ → 改題：○○」
 
 【原題與改題對照表】
-${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處｜原題寫法｜改寫後｜對應的問題類型｜為什麼這樣改"}`+summary("改寫後的題目重點、答案與認知層次")+NEXT("請回到命題網頁按第 3 段的「複製」貼到這個對話，我會幫您審題。")+`
+${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處｜原題寫法｜改寫後｜對應的問題類型｜為什麼這樣改"}`+summary("改寫後的題目重點、答案與認知層次")+NEXT("請先看看改好的題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改；滿意了，就按第 3 段「審題」的「複製」貼到這個對話。")+`
 請在這裡結束回覆，等我要求審題。`;
 
-  const p3=`第三階段：審題。請檢查改寫後的題目。先不要再改寫，只提出問題與建議。
+  const p3=`第三階段：審題。請檢查改寫後的題目（如果後來有調整，以最新的版本為準）。先不要再改寫，只提出問題與建議。
 
 1. 模擬作答：扮演下列學生作答，寫出他會選的答案和理由（每人 1–2 句）。
    (a) 沒有讀情境、只靠課本記憶的學生
@@ -768,8 +770,8 @@ ${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處�
 4. 給一個最值得做的修改建議。`+NEXT("審題完成。您可以直接請我依建議修改。");
   return [{t:"診斷原題",d:"複製後貼到 AI 的新對話。AI 會提出改寫方向並停下。",x:p1},
           {t:"改寫",d:"AI 回答第 1 段後，在下面填入您選的方向，再複製貼到同一個對話。",x:p2,nx:"AI 回答完後，在第 2 段填入您選擇的改寫方向（例如 第 1 個），再按「複製」貼到同一個對話。",picks:[{k:"dir",lab:"您選擇的改寫方向",ph:"例：第 1 個",req:1},{k:"extra",lab:"補充要求（選填）",ph:"例：情境改成校園裡的例子"}]},
-          {t:"審題",d:"AI 改寫後，複製貼到同一個對話。",x:p3,nx:"AI 改寫完後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。"},
-          tweakSheet()];
+          tweakSheet(2,3),
+          {t:"審題",d:"題目滿意後，複製貼到同一個對話。",x:p3,nx:"AI 改寫完後，先看看題目：想再改，用上面的「想再改一下？」；滿意了，按第 3 段「審題」的「複製」貼到同一個對話。"}];
 }
 
 /* ---------- 析卷 ---------- */
@@ -931,21 +933,25 @@ function build(){
   const sheets=m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
   if(m==="gen"){box.hidden=true;$("ready").hidden=true;renderGuided(sheets,miss);deidCheck(st.fix.orig,"deidFix");deidCheck(st.ana.paper,"deidAna");return}
   gSig="";
-  let i=0;sheets.forEach(x=>{x.no=x.n||String(++i);x.id=x.no.replace("+","p")});
+  let i=0;sheets.forEach(x=>{x.no=x.n||String(++i);x.id=x.idx||x.no.replace("+","p")});
   const sig=[m,st.level,st.fix.way,st.aiSuggest,sheets.map(x=>x.no+x.t+(x.picks||[]).map(p=>p.k).join("")).join("|")].join("/");
   if(sig!==lastSig){
     lastSig=sig;copied.clear();
-    $("sheets").innerHTML=sheets.map(x=>x.tweaks?`<section class="sheet" id="sh_${x.id}" style="margin-bottom:14px"><div class="sheet-h"><span class="num">＋</span><div class="grow"><h2>${x.t}</h2><p id="d_${x.id}"></p></div></div><div class="tweaks">`+
-      x.tweaks.map((tw,j)=>`<div class="tw"><div class="tw-h"><span>${esc(tw.lab)}</span><button type="button" class="btn" data-copy="tw${j}">複製</button></div><div class="tip" id="tip_tw${j}" hidden></div><details><summary>看提示詞</summary><pre id="p_tw${j}"></pre></details></div>`).join("")+`</div></section>`:
+    $("sheets").innerHTML=sheets.map(x=>x.tweak?`<section class="sheet opt" id="sh_${x.id}" style="margin-bottom:14px"><div class="sheet-h"><span class="num opt">選用</span><div class="grow"><h2>${x.t}</h2><p id="d_${x.id}"></p></div><button type="button" class="btn primary" data-copy="${x.id}">複製</button></div>`+
+      `<div class="picks"><ol class="tw-how"><li>勾選要怎麼改（可複選）</li><li>按右上角「複製」</li><li>貼到<b>同一個</b> AI 對話，AI 會再改一次</li></ol><div class="goals">`+
+      TWEAKS.map(t=>`<label class="goal"><input type="checkbox" data-tw="${t[0]}"><span><b>${t[1]}</b><small>${t[2]}</small></span></label>`).join("")+
+      `</div><label for="pk_twx">其他想改的地方（選填）<input type="text" id="pk_twx" data-pick="twx" placeholder="例：第 2 個選項太容易刪去；數據改成整數"></label><span class="hint">改完還不滿意，可以重新勾選，再複製一次。</span></div>`+
+      `<div class="tip" id="tip_${x.id}" hidden></div><pre id="p_${x.id}"></pre></section>`:
       `<section class="sheet" id="sh_${x.id}" style="margin-bottom:14px"><div class="sheet-h"><span class="num">${x.no}</span><div class="grow"><h2>${x.t}</h2><p id="d_${x.id}"></p></div><button type="button" class="btn primary" data-copy="${x.id}">複製</button></div>`+
       (x.picks?`<div class="picks">`+x.picks.map(pk=>`<label for="pk_${pk.k}">${pk.lab}${pk.req?'<span class="rqm">必填</span>':""}${pk.area?`<textarea id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}"></textarea>`:`<input type="text" id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}">`}</label>`).join("")+`</div>`:"")+
       `<div class="tip" id="tip_${x.id}" hidden></div><pre id="p_${x.id}"></pre></section>`).join("");
     sheets.forEach(x=>(x.picks||[]).forEach(pk=>{$("pk_"+pk.k).value=(st.pick||{})[pk.k]||""}));
+    if($("pk_twx")){$("pk_twx").value=pv("twx");document.querySelectorAll("[data-tw]").forEach(c=>c.checked=twSel().includes(c.dataset.tw))}
   }
-  sheets.forEach(x=>{$("d_"+x.id).textContent=x.d;if(x.tweaks){x.tweaks.forEach((tw,j)=>{$("p_tw"+j).textContent=tw.x});return}$("p_"+x.id).innerHTML=esc(x.x).split(B).join('<span class="blank">'+B+'</span>')});
+  sheets.forEach(x=>{$("d_"+x.id).textContent=x.d;$("p_"+x.id).innerHTML=esc(x.x).split(B).join('<span class="blank">'+B+'</span>')});
   const ok=!miss.length, rd=$("ready");
   const nxt=sheets.find(x=>!copied.has(x.id)&&x.id!=="1p"&&!x.opt)||null;
-  sheets.forEach(x=>{$("sh_"+x.id).classList.toggle("done",copied.has(x.id));const c=document.querySelector(`[data-copy="${x.id}"]`);if(c)c.classList.toggle("glow",ok&&nxt===x)});
+  sheets.forEach(x=>{$("sh_"+x.id).classList.toggle("done",copied.has(x.id));const c=document.querySelector(`[data-copy="${x.id}"]`);if(c)c.classList.toggle("glow",ok&&nxt===x);if(c&&x.tweak&&c.textContent!=="已複製"){c.disabled=x.need;c.textContent=x.need?"請先勾選":"複製"}});
   rd.hidden=!ok;
   if(ok){
     if(!copied.size)rd.innerHTML="<b>必填內容已完成！</b>請按下方第 1 段提示詞的「複製」，貼到您要使用的 AI（ChatGPT、Gemini 或 Claude）的新對話中。";
@@ -964,6 +970,7 @@ document.addEventListener("change",e=>{
   if(t.dataset.rev){(st.pick||(st.pick={})).rev=t.value;build();return}
   if(t.dataset.lc){const c=t.dataset.lc;st.lc=t.checked?[...st.lc,c]:st.lc.filter(x=>x!==c);touch();renderTags();build();return}
   if(t.dataset.lp){const c=t.dataset.lp;st.lp=t.checked?[...st.lp,c]:st.lp.filter(x=>x!==c);touch();renderTags();build();return}
+  if(t.dataset.tw){const pk=st.pick||(st.pick={});pk.tw=[...document.querySelectorAll("[data-tw]")].filter(c=>c.checked).map(c=>c.dataset.tw);build();return}
   if(t.name==="goal"){let g=GOALS.map(x=>x[0]).filter(k=>$("go_"+k).checked);if(t.checked)g=t.value==="unsure"?["unsure"]:g.filter(k=>k!=="unsure");st.fix.goals=g;GOALS.forEach(x=>$("go_"+x[0]).checked=g.includes(x[0]));touch();build();return}
   if(t.name==="type"){st.gen.types=TYPES.map(x=>x[0]).filter(k=>$("t_"+k).checked);touch();build();return}
   const k=t.dataset.k;if(!k)return;
@@ -997,8 +1004,8 @@ document.addEventListener("click",e=>{
     const el=$("p_"+b.dataset.copy),txt=el.textContent;
     const no=b.dataset.copy;
     const done=ok=>{const ol=b.textContent;b.textContent=ok?"已複製":"請按 Ctrl+C";setTimeout(()=>{b.textContent=ol;build()},1800);
-      const tp=$("tip_"+no);tp.hidden=false;tp.textContent=ok?"已複製！請貼到 AI 對話中，等 AI 回答完，再回到這裡看下一步。":"已選取文字，請按 Ctrl+C（手機請長按選擇「拷貝」），再貼到 AI 對話中。";
-      if(no!=="1p"&&!no.startsWith("tw"))copied.add(no);build()};
+      const tp=$("tip_"+no);tp.hidden=false;tp.textContent=no==="p"?(ok?"已複製！請貼到同一個 AI 對話。AI 改完後，還想改就重新勾選再複製；滿意了，就做下面的審題。":"已選取文字，請按 Ctrl+C（手機請長按選擇「拷貝」），再貼到同一個 AI 對話。"):ok?"已複製！請貼到 AI 對話中，等 AI 回答完，再回到這裡看下一步。":"已選取文字，請按 Ctrl+C（手機請長按選擇「拷貝」），再貼到 AI 對話中。";
+      if(no!=="1p"&&no!=="p")copied.add(no);build()};
     const sel=()=>{const r=document.createRange();r.selectNodeContents(el);const s=window.getSelection();s.removeAllRanges();s.addRange(r)};
     const legacy=()=>{sel();let ok=false;try{ok=document.execCommand("copy")}catch(_){}done(ok)};
     if(navigator.clipboard&&navigator.clipboard.writeText&&window.isSecureContext){navigator.clipboard.writeText(txt).then(()=>done(true),legacy)}else legacy();
