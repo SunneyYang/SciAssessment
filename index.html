@@ -124,6 +124,9 @@ button.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
 button.btn.next{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700}
 .g-hint{font-size:12.5px;color:var(--ink-soft);margin:0;padding:0 16px 12px;text-align:right}
 .guide .tip{padding:8px 0 0}
+.g-rev{display:flex;flex-direction:column;gap:6px;margin:10px 16px 0;padding:10px 12px;border:1px dashed var(--blue);border-radius:6px;background:var(--blue-wash)}
+.g-q{font-weight:700;font-size:14px}
+.g-then{padding:2px 16px 0;font-size:13.5px;font-weight:700;color:var(--ink)}
 .picks{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid var(--rule);background:var(--blue-wash)}
 .picks label{display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:500}
 .picks .rqm{color:var(--pen);font-weight:700;font-size:12px;margin-left:4px}
@@ -337,7 +340,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.2.8</span> · 2026-10-15</span>
+    <span>版本 <span class="code">v0.2.9</span> · 2026-10-15</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -598,7 +601,23 @@ ${cogRule()}
 4. 總結最需要優先修改的 3 個問題。`+NEXT("審題完成。您可以直接請我依建議修改題目，或回到命題網頁重新設定再出題。");
   return [{t:"確認設定，提出情境",d:"複製後貼到 AI 的新對話。AI 會提出情境並停下，等您選擇。",x:p1},
           {t:"出題",d:"AI 回答第 1 段後，在下面填入您的選擇，再複製貼到同一個對話。",x:p2,nx:"AI 回答完後，在第 2 段填入您選擇的情境（AI 回答中的代號，例如 A），再按「複製」貼到同一個對話。",picks:[{k:"scene",lab:"您選擇的情境",ph:"例：A，或「A，但改成在教室進行」",req:1},{k:"mis",lab:"採用的迷思概念（選填，空白表示全部採用）",ph:"例：只用第 1 個"}].concat(st.aiSuggest?[{k:"lp",lab:"採用的學習表現（選填，空白表示採用 AI 建議的全部條目）",ph:"例：pa-Ⅱ-2、tr-Ⅱ-1"}]:[])},
-          {t:"審題",d:"AI 出題後，複製貼到同一個對話。",x:p3,nx:"AI 出完題目後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。"}];
+          (()=>{const rv=pv("rev")||"direct";
+            if(rv==="self"){const p3s=p3.replace("請以審題委員的角度檢查剛才的題目。","請以審題委員的角度檢查我修改後的題目。")
+              .replace("第三階段：審題。",`第三階段：審題。
+
+以下是我修改後的最終版本。請以這個版本審題，不要用你先前出的版本。如果題目或答案和你先前出的不同，請先依這個版本更新整理表格（題號｜題型｜單元｜認知層次｜可診斷的迷思概念｜答案）。
+
+【我修改後的題目】
+${P("revText")}
+
+`);
+              return {t:"審題",d:"",x:p3s,nx:"AI 出完題目後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。",picks:[{k:"revText",lab:"貼上您修改後的題目（請保留題號與答案）",ph:"把您在 Word 或其他地方改好的題目整份貼在這裡",area:1,req:1,need:"請先貼上您修改後的題目"}]}}
+            if(rv==="ai"){const mod=`請依照下面的要求，修改你剛才出的題目：
+${P("revAsk")}
+
+修改後請輸出：完整的修改後題目、正確答案與解析，並重新整理表格（題號｜題型｜單元｜認知層次｜可診斷的迷思概念｜答案）。沒有要求修改的題目維持原樣。修改後的版本就是之後審題的依據。`+NEXT("請確認修改後的題目，再回到命題網頁按「複製第 3 段提示詞」貼到這個對話，我會幫您審題。")+`\n請在這裡結束回覆，等我要求審題。`;
+              return {t:"審題",d:"",x:p3,x2:mod,nx:"AI 出完題目後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。",picks:[{k:"revAsk",lab:"要怎麼改？",ph:"例：第 2 題的情境改成在教室裡；第 1 題選項 C 太容易排除，換一個",area:1,req:1,for:"3a"}]}}
+            return {t:"審題",d:"AI 出題後，複製貼到同一個對話。",x:p3,nx:"AI 出完題目後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。"}})()];
 }
 
 /* ---------- 改題 ---------- */
@@ -783,7 +802,7 @@ function renderGuided(sheets,miss){
   const names=["設定","提出情境","選情境出題","審題","完成"];
   const steps=names.map((n,i)=>{const cls=i===disp?"cur":(i<disp?"done":"");const can=ok&&i>=1&&i<=gmax;
     return `<button type="button" class="stp ${cls}" ${can&&i!==disp?`data-gstep="${i}"`:"disabled"}><b>${i<disp?"✓":(i===0?"0":i===4?"★":i)}</b>${n}</button>`}).join("");
-  const sig=disp+"/"+st.aiSuggest+"/"+st.level;
+  const sig=disp+"/"+st.aiSuggest+"/"+st.level+"/"+(disp===3?(pv("rev")||"direct"):"");
   const nai=lite()?3:5;
   if(sig!==gSig){
     gSig=sig;let h="";
@@ -796,15 +815,21 @@ function renderGuided(sheets,miss){
         <li><b>想再加強某一題</b>：把題目複製到本網頁的「改題」模式。</li></ul>
         <div class="g-nav"><button type="button" class="btn" data-gstep="3">← 回上一步</button><button type="button" class="btn" data-gstep="1">回到步驟 1</button></div></section>`;
     }else{
-      const x=sheets[disp-1];
+      const x=sheets[disp-1], rv=pv("rev")||"direct";
+      const t3={direct:[`先看過 AI 出的題目。`,`按「複製第 3 段提示詞」，貼到<b>同一個 AI 對話</b>送出。`,`AI 會模擬學生作答、逐題檢核。看完後按「審題完成」。`],
+        ai:[`在下面寫出要怎麼改，例如「第 2 題的情境改成在教室裡」。`,`按「複製修改提示詞」，貼到<b>同一個 AI 對話</b>送出，等 AI 改完。`,`再按「複製第 3 段提示詞」，貼到同一個對話，請 AI 審題。`,`看完審題結果後按「審題完成」。`],
+        self:[`把 AI 出的題目複製到 Word 或其他地方，依您的想法修改。`,`把修改好的題目整份貼在下面，<b>請保留題號與答案</b>。`,`按「複製第 3 段提示詞」，貼到<b>同一個 AI 對話</b>送出。AI 會以您的版本審題。`,`看完審題結果後按「審題完成」。`]};
       const todo={1:[`按下方的「複製第 1 段提示詞」。`,`打開 ChatGPT、Gemini 或 Claude，<b>開一個新對話</b>，貼上後送出。`,`等 AI 回答完。AI 會列出迷思概念和 ${nai} 個情境，回答最後會出現【下一步】。`,`回到這裡，按「AI 已回答，前往步驟 2」。`],
         2:[`看 AI 列出的情境，選一個最合適的，把<b>代號（例如 A）</b>填在下面。`,`按「複製第 2 段提示詞」。`,`回到<b>同一個 AI 對話</b>，貼上後送出。`,`等 AI 出完題目（最後會出現【下一步】），按「AI 已出完題，前往步驟 3」。`],
-        3:[`先看過 AI 出的題目。`,`按「複製第 3 段提示詞」，貼到<b>同一個 AI 對話</b>送出。`,`AI 會模擬學生作答、逐題檢核。看完後按「審題完成」。`]}[disp];
-      const title={1:"請 AI 提出情境",2:"選擇情境，請 AI 出題",3:"請 AI 審題"}[disp];
+        3:t3[rv]}[disp];
+      const title={1:"請 AI 提出情境",2:"選擇情境，請 AI 出題",3:"修改與審題"}[disp];
       const nextLab={1:"AI 已回答，前往步驟 2 →",2:"AI 已出完題，前往步驟 3 →",3:"審題完成 ✓"}[disp];
-      h=`<section class="sheet guide" id="sh_${disp}"><div class="g-h"><span class="g-k">步驟 ${disp}／3</span><h2>${title}</h2></div>
+      const revUI=disp===3?`<div class="g-rev"><span class="g-q">AI 出的題目，您要：</span><div class="chips">`+[["direct","直接審題"],["ai","請 AI 先修改"],["self","我自己改過了"]].map(([v,l])=>`<label class="chip"><input type="radio" name="rev" id="rv_${v}" value="${v}" data-rev="1" ${rv===v?"checked":""}><span>${l}</span></label>`).join("")+`</div><span class="hint">不管題目是 AI 出的還是您改的，最後都建議經過審題。</span></div>`:"";
+      const pickHTML=pk=>`<label for="pk_${pk.k}"><span>${pk.lab}${pk.req?'<span class="rqm">必填</span>':""}</span>${pk.area?`<textarea id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}"></textarea>`:`<input type="text" id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}">`}</label>`;
+      const modBlock=x.x2?`<div class="g-act"><button type="button" class="btn primary big" data-copy="3a" id="g_copy3a">複製修改提示詞</button><div class="tip" id="tip_3a" hidden></div></div><details class="g-pre"><summary>看修改提示詞的內容（可略過）</summary><pre id="p_3a"></pre></details><div class="g-then">AI 改完後，再複製審題提示詞：</div>`:"";
+      h=`<section class="sheet guide" id="sh_${disp}"><div class="g-h"><span class="g-k">步驟 ${disp}／3</span><h2>${title}</h2></div>${revUI}
         <ol class="todo">${todo.map(t=>"<li>"+t+"</li>").join("")}</ol>`+
-        (x.picks?`<div class="picks">`+x.picks.map(pk=>`<label for="pk_${pk.k}"><span>${pk.lab}${pk.req?'<span class="rqm">必填</span>':""}</span><input type="text" id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}"></label>`).join("")+`</div>`:"")+
+        (x.picks?`<div class="picks">`+x.picks.map(pickHTML).join("")+`</div>`:"")+modBlock+
         `<div class="g-act"><button type="button" class="btn primary big" data-copy="${disp}" id="g_copy">複製第 ${disp} 段提示詞</button><div class="tip" id="tip_${disp}" hidden></div></div>
         <details class="g-pre"><summary>看第 ${disp} 段提示詞的內容（可略過）</summary><pre id="p_${disp}"></pre></details>
         <div class="g-nav">${disp>1?`<button type="button" class="btn" data-gstep="${disp-1}">← 回上一步</button>`:"<span></span>"}<button type="button" class="btn next" id="g_next" data-gstep="${disp+1}">${nextLab}</button></div>
@@ -816,9 +841,12 @@ function renderGuided(sheets,miss){
   if(disp===0)$("g_miss").innerHTML=miss.map(x=>"<li>"+x+"</li>").join("");
   if(disp>=1&&disp<=3){
     const x=sheets[disp-1];$("p_"+disp).innerHTML=esc(x.x).split(B).join('<span class="blank">'+B+'</span>');
-    const need=(x.picks||[]).filter(pk=>pk.req&&!pv(pk.k));
+    if(x.x2){$("p_3a").innerHTML=esc(x.x2).split(B).join('<span class="blank">'+B+'</span>');
+      const n2=(x.picks||[]).filter(pk=>pk.req&&pk.for==="3a"&&!pv(pk.k));const c2=$("g_copy3a");c2.disabled=!!n2.length;
+      if(c2.textContent!=="已複製")c2.textContent=n2.length?"請先寫出要怎麼改":"複製修改提示詞";}
+    const need=(x.picks||[]).filter(pk=>pk.req&&!pk.for&&!pv(pk.k));
     const cb=$("g_copy");cb.disabled=!!need.length;
-    if(cb.textContent!=="已複製")cb.textContent=need.length?"請先填入"+need.map(pk=>pk.lab.replace(/（.*/,"")).join("、"):`複製第 ${disp} 段提示詞`;
+    if(cb.textContent!=="已複製")cb.textContent=need.length?need[0].need||"請先填入"+need.map(pk=>pk.lab.replace(/（.*/,"")).join("、"):`複製第 ${disp} 段提示詞`;
     const done=copied.has(String(disp));$("g_next").disabled=!done;$("g_hint").hidden=done;
     $("g_next").classList.toggle("glow",done);
   }
@@ -868,6 +896,7 @@ function all(){applyMode();renderPicker();renderTags();build()}
 
 document.addEventListener("change",e=>{
   const t=e.target;
+  if(t.dataset.rev){(st.pick||(st.pick={})).rev=t.value;build();return}
   if(t.dataset.lc){const c=t.dataset.lc;st.lc=t.checked?[...st.lc,c]:st.lc.filter(x=>x!==c);touch();renderTags();build();return}
   if(t.dataset.lp){const c=t.dataset.lp;st.lp=t.checked?[...st.lp,c]:st.lp.filter(x=>x!==c);touch();renderTags();build();return}
   if(t.name==="type"){st.gen.types=TYPES.map(x=>x[0]).filter(k=>$("t_"+k).checked);touch();build();return}
