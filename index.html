@@ -53,6 +53,11 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4vw,36px);l
 .grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:start}
 @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
 form{display:flex;flex-direction:column;gap:16px;min-width:0}
+form[data-mode=gen] .s-use{order:-5}
+form[data-mode=gen][data-use=class] .ex-only{display:none!important}
+form:not([data-mode=gen][data-use=class]) .cl-only{display:none!important}
+.chip input:disabled+span{opacity:.4;cursor:not-allowed}
+.use-desc{font-size:13px;color:var(--ink-soft);line-height:1.6;margin:2px 0 0}
 .sec{font-size:12.5px;letter-spacing:.1em;color:var(--ink-soft);font-weight:700;margin:6px 0 -6px;display:flex;align-items:center;gap:10px}
 .sec::after{content:"";flex:1;border-top:1px dashed var(--rule)}
 fieldset{border:1px solid var(--rule);background:var(--sheet);border-radius:6px;margin:0;padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -168,7 +173,7 @@ footer .code{font-family:var(--f-code)}
   </header>
 
   <div class="modes" role="radiogroup" aria-label="選擇模式">
-    <label class="mode"><input type="radio" name="mode" id="m_gen" value="gen" data-k="mode"><span class="card"><span class="nm">出題</span><span class="ds">我想從課綱條目開始，設計新的素養題</span></span></label>
+    <label class="mode"><input type="radio" name="mode" id="m_gen" value="gen" data-k="mode"><span class="card"><span class="nm">出題</span><span class="ds">我想為上課或期中、期末出新的題目</span></span></label>
     <label class="mode"><input type="radio" name="mode" id="m_fix" value="fix" data-k="mode"><span class="card"><span class="nm">改題</span><span class="ds">我手上有舊題目，想改成素養題</span></span></label>
     <label class="mode"><input type="radio" name="mode" id="m_ana" value="ana" data-k="mode"><span class="card"><span class="nm">試卷分析</span><span class="ds">我已經命好一份試卷，想檢查它的品質</span></span></label>
   </div>
@@ -186,14 +191,14 @@ footer .code{font-family:var(--f-code)}
       <div class="sec s-top">共用設定</div>
 
       <fieldset class="s-top">
-        <legend>年級與模式<span class="rq req">必填</span></legend>
+        <legend><span id="gradeLegend">年級與模式</span><span class="rq req">必填</span></legend>
         <div class="chips" id="grades"></div>
         <span class="hint">三、四年級對應第二學習階段（Ⅱ），五、六年級對應第三學習階段（Ⅲ）。更換階段時，已選的課綱條目會清除。</span>
-        <div class="chips">
+        <div class="chips ex-only">
           <label class="chip"><input type="radio" name="level" id="lv_lite" value="lite" data-k="level"><span>精簡模式</span></label>
           <label class="chip"><input type="radio" name="level" id="lv_full" value="full" data-k="level"><span>完整模式</span></label>
         </div>
-        <span class="hint">使用免費版 AI 建議選精簡模式：提示詞與輸出較短，並在每個階段產生「接續摘要」，額度用完時可帶著摘要開新對話或換工具繼續。</span>
+        <span class="hint ex-only">使用免費版 AI 建議選精簡模式：提示詞與輸出較短，並在每個階段產生「接續摘要」，額度用完時可帶著摘要開新對話或換工具繼續。</span>
       </fieldset>
 
       <fieldset class="q-hide">
@@ -208,16 +213,16 @@ footer .code{font-family:var(--f-code)}
             <input type="text" id="unit" data-k="unit" placeholder="例：熱的傳播">
           </label>
         </div>
-        <span class="hint" data-modes="gen fix">單元名稱為選填，只用來標示雙向細目表的單元欄，不影響出題。</span>
+        <span class="hint ex-only" data-modes="gen fix">單元名稱為選填，只用來標示雙向細目表的單元欄，不影響出題。</span>
         <span class="hint strong" id="unitHint" hidden>建議填寫考試範圍的單元名稱，多個單元用頓號分隔，分析會更準確。沒填時，AI 會先推斷單元請您確認。</span>
-        <label class="lab" for="activity" data-modes="gen fix">本單元重要實驗或活動
-          <span class="hint">簡短描述學生做過的實驗。AI 會以這段描述為準，不會自行猜測教科書內容。</span>
+        <label class="lab" for="activity" data-modes="gen fix"><span id="actLab">本單元重要實驗或活動</span>
+          <span class="hint" id="actHint">簡短描述學生做過的實驗。AI 會以這段描述為準，不會自行猜測教科書內容。</span>
           <textarea id="activity" data-k="activity" placeholder="例：在金屬棒貼感溫貼紙，從一端加熱，觀察顏色變化的順序。"></textarea>
         </label>
       </fieldset>
 
       <fieldset class="q-hide">
-        <legend>學習內容<span class="rq" data-req="gen:必填,fix:選填,ana:選填"></span></legend>
+        <legend>學習內容<span class="rq" data-req="gen:必填,fix:選填,ana:選填" id="lcReq"></span></legend>
         <span class="hint" data-modes="fix">沒選時，AI 會從原題推斷對應的條目，再請您確認。</span>
         <span class="hint" data-modes="ana">沒選時，AI 會從試卷反推。</span>
         <input type="search" id="lcSearch" placeholder="搜尋條目，例如：熱、磁、酸鹼、INe" aria-label="搜尋學習內容">
@@ -225,7 +230,7 @@ footer .code{font-family:var(--f-code)}
         <div class="sel" id="lcSel" aria-live="polite"></div>
       </fieldset>
 
-      <fieldset class="q-hide">
+      <fieldset class="q-hide ex-only">
         <legend>學習表現<span class="rq" data-req="gen:必填,fix:選填,ana:選填"></span></legend>
         <label class="check" for="aiSuggest" data-modes="gen"><input type="checkbox" id="aiSuggest" data-k="aiSuggest"> 不確定要選哪一條，請 AI 從本階段條目中建議</label>
         <div class="picker" id="lpPicker"></div>
@@ -244,7 +249,44 @@ footer .code{font-family:var(--f-code)}
       <div class="sec s-mode" id="modeSec">出題設定</div>
 
       <!-- 出題 -->
-      <fieldset data-modes="gen">
+      <fieldset data-modes="gen" class="s-use">
+        <legend>評量用途<span class="rq req">必填</span></legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="use" id="use_class" value="class" data-k="gen.use"><span>上課評量</span></label>
+          <label class="chip"><input type="radio" name="use" id="use_exam" value="exam" data-k="gen.use"><span>定期評量（期中、期末）</span></label>
+        </div>
+        <p class="use-desc" id="useDesc"></p>
+        <div class="cl-only" style="display:flex;flex-direction:column;gap:8px">
+          <span class="lab">使用時機<span class="rq req">必填</span></span>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="when" id="wh_pre" value="pre" data-k="gen.when"><span>課前</span></label>
+            <label class="chip"><input type="radio" name="when" id="wh_mid" value="mid" data-k="gen.when"><span>課中</span></label>
+            <label class="chip"><input type="radio" name="when" id="wh_post" value="post" data-k="gen.when"><span>課後</span></label>
+          </div>
+          <span class="hint" id="whenHint">課前：了解起點行為與既有知識｜課中：作為教學方法之一｜課後：了解學習情形</span>
+          <span class="lab">作答方式</span>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="fmt" id="fm_paper" value="paper" data-k="gen.fmt"><span>紙本</span></label>
+            <label class="chip"><input type="radio" name="fmt" id="fm_kahoot" value="kahoot" data-k="gen.fmt"><span>Kahoot 互動</span></label>
+          </div>
+          <span class="hint" id="fmtHint"></span>
+        </div>
+      </fieldset>
+      <fieldset data-modes="gen" class="cl-only">
+        <legend>題數與題型<span class="rq req">必填</span></legend>
+        <div class="row">
+          <label class="lab" for="ccount">題數（1–3 題）
+            <input type="number" id="ccount" data-k="gen.ccount" min="1" max="3">
+          </label>
+        </div>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="ctype" id="ct_mc" value="mc" data-k="gen.ctype"><span>選擇題</span></label>
+          <label class="chip"><input type="radio" name="ctype" id="ct_short" value="short" data-k="gen.ctype"><span>簡答題</span></label>
+          <label class="chip"><input type="radio" name="ctype" id="ct_mix" value="mix" data-k="gen.ctype"><span>選擇＋簡答</span></label>
+        </div>
+        <span class="hint" id="ctypeHint">上課用的題目要短，學生 1–2 分鐘內可以作答完。</span>
+      </fieldset>
+      <fieldset data-modes="gen" class="ex-only">
         <legend>題型、題數與認知層次<span class="rq req">必填</span></legend>
         <div class="chips" id="types"></div>
         <div class="row">
@@ -355,7 +397,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.3.1</span> · 2026-10-17</span>
+    <span>版本 <span class="code">v0.4.0</span> · 2026-10-24</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -409,11 +451,11 @@ const EXAMPLE={mode:"gen",grade:"5",level:"lite",publisher:"",unit:"熱的傳播
   activity:"在金屬棒貼感溫貼紙，從一端加熱，觀察顏色變化的順序；在燒杯水中加入少量木屑後從底部加熱，觀察木屑的移動方向。",
   lc:["INa-Ⅲ-8"],lp:["tr-Ⅲ-1","ah-Ⅲ-1"],aiSuggest:false,
   miscon:"學生以為冰塊會把「冷」傳到手上\n學生以為金屬本身就比木頭冷\n學生認為熱只會往上傳",
-  gen:{types:["mc","set"],count:3,dist:"以了解為主，含一題高層次",context:"家中廚房、學校營養午餐"},
+  gen:{use:"class",when:"post",fmt:"paper",ccount:2,ctype:"mc",types:["mc","set"],count:3,dist:"以了解為主，含一題高層次",context:"家中廚房、學校營養午餐"},
   fix:{orig:"（　）熱的傳播方式有哪三種？\n①傳導、對流、輻射　②傳導、蒸發、凝結\n③對流、蒸發、輻射　④傳導、對流、蒸發",ans:"①",concept:"",way:"quick",scope:"中度",goals:["mem","ctx"],perf:"答對率很高，但遇到生活情境時，學生常說不出是哪一種熱的傳播。"},
   ana:{rows:"單元",annot:false,upload:false,paper:"一、是非題（每題 2 分）\n（　）1. 熱會從溫度高的地方傳到溫度低的地方。\n（　）2. 冬天摸鐵欄杆覺得冰，是因為鐵把冷傳到手上。\n二、選擇題（每題 3 分）\n（　）1. 煮湯時，湯匙柄慢慢變燙，主要是哪一種熱的傳播？①傳導 ②對流 ③輻射\n三、題組（共 10 分）\n小華把兩杯同樣溫度的熱水，分別倒進保麗龍杯和不鏽鋼杯，每 5 分鐘記錄一次水溫：\n時間（分）：0、5、10、15\n保麗龍杯（℃）：80、76、72、69\n不鏽鋼杯（℃）：80、70、62、55\n（1）哪一個杯子保溫效果較好？請用表中的數據說明。（4 分）\n（2）如果要讓不鏽鋼杯更保溫，你會怎麼改良？說明理由。（6 分）"}};
 const BLANK={mode:"gen",grade:"",level:"lite",publisher:"",unit:"",activity:"",lc:[],lp:[],aiSuggest:false,miscon:"",
-  gen:{types:[],count:3,dist:"以了解為主，含一題高層次",context:""},
+  gen:{use:"class",when:"",fmt:"paper",ccount:2,ctype:"mc",types:[],count:3,dist:"以了解為主，含一題高層次",context:""},
   fix:{orig:"",ans:"",concept:"",way:"quick",scope:"中度",goals:[],perf:""},
   ana:{rows:"單元",annot:false,upload:false,paper:""}};
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -426,6 +468,7 @@ function stage(){const g=GRADES.find(x=>x[0]===st.grade);return g?g[2]:null}
 function gradeName(){const g=GRADES.find(x=>x[0]===st.grade);return g?g[1]:"（未選）"}
 function stageName(){const s=stage();return s==="II"?"第二學習階段":s==="III"?"第三學習階段":"（未選）"}
 const lite=()=>st.level!=="full";
+const cls=()=>st.gen.use==="class";
 const maxCount=()=>lite()?5:10;
 
 $("grades").innerHTML=GRADES.map(g=>`<label class="chip"><input type="radio" name="grade" id="g${g[0]}" value="${g[0]}" data-k="grade"><span>${g[1]}</span></label>`).join("");
@@ -489,6 +532,21 @@ function applyMode(){
   $("count").max=maxCount();
   $("origLab").textContent=lite()?"題目文字（含選項；精簡模式一次一題，題組算一題）":"題目文字（含選項；完整模式最多三題，請標好題號）";
   $("scopeHint").textContent=SCOPE[st.fix.scope]||"";
+  const cl=m==="gen"&&cls();
+  $("f").dataset.use=st.gen.use;
+  $("useDesc").textContent=st.gen.use==="class"?"上課評量：課前、課中或課後使用的 1–3 題，AI 會附上教學回應建議，告訴您學生答了之後下一步怎麼教。":"定期評量：期中、期末試卷的題目，從課綱條目出發，分四個步驟完成，並依臺北市格式整理雙向細目表。";
+  $("gradeLegend").textContent=cl?"年級":"年級與模式";
+  if(m==="gen")$("modeNote").textContent=cl?"出題・上課評量：設計課前、課中或課後使用的 1–3 題":"出題・定期評量：從課綱條目開始，設計期中、期末的素養題";
+  $("actLab").textContent=cl?"這節課學了什麼（必填）":"本單元重要實驗或活動";
+  $("actHint").textContent=cl?"寫下這節課的學習目標或做了什麼實驗。AI 會以這段描述為準出題。":"簡短描述學生做過的實驗。AI 會以這段描述為準，不會自行猜測教科書內容。";
+  $("activity").placeholder=cl?"例：用感溫貼紙觀察金屬棒加熱後，熱從哪裡傳到哪裡。":"例：在金屬棒貼感溫貼紙，從一端加熱，觀察顏色變化的順序。";
+  if(cl){const r=$("lcReq");if(r){r.textContent="選填";r.className="rq opt"}
+    $("how").innerHTML=["<b>1</b> 選使用時機與作答方式，寫下這節課學了什麼","<b>2</b> 複製第 1 段貼到 AI，得到學生版與教師版題目","<b>選用</b> 不滿意，用「想再改一下？」；想更放心，複製第 2 段請 AI 審題"].map(x=>"<li>"+x+"</li>").join("");
+    $("misHint").textContent="用學生的想法來描述，一行一個。沒填時，AI 會依這節課的內容推測。平常記下學生的迷思，期中、期末出題時也用得到。";}
+  else if(m==="gen")$("misHint").textContent="用學生的想法來描述，一行一個。平常上課評量發現的迷思，可以寫在這裡。沒填時，AI 會先列出常見迷思，請您確認後再出題。";
+  const kh=st.gen.fmt==="kahoot";
+  ["short","mix"].forEach(k=>$("ct_"+k).disabled=kh);
+  $("fmtHint").textContent=kh?"Kahoot 只能匯入選擇題。AI 會另外輸出一張匯入表格：到 Kahoot 下載試算表範本，把表格從「題目」那一欄開始貼上，存檔後在 Kahoot 選「匯入試算表」（Import spreadsheet）。":"AI 會輸出可以直接印給學生的學習單，以及教師版。";
   $("paperLab").textContent=lite()?"試卷文字（第一批）":"試卷文字（整份）";
   $("paperHint").textContent=lite()?"精簡模式請分批：先貼一個大題（題組），是非、選擇等區塊每次約 10 小題。其餘批次用右邊的「後續批次」提示詞接著貼。":"可貼上整份試卷。題號請保留試卷原本的編號。";
 }
@@ -554,6 +612,84 @@ const pv=k=>((st.pick||(st.pick={}))[k]||"").trim();
 const P=k=>pv(k)||B;
 const NEXT=t=>`\n回覆的最後，請原封不動加上這一段：\n【下一步】${t}`;
 const summary=(what)=>lite()?`\n最後用 5 行以內輸出【接續摘要】：${what}。如果之後要開新對話繼續，我會把這段摘要貼回來。`:"";
+
+/* ---------- 上課評量 ---------- */
+const WHEN={
+  pre:{nm:"課前",goal:"了解學生的起點行為與既有知識",
+    rule:`1. 題目在這節課教之前作答，不能考這節課才會教的名詞或術語。
+2. 用學生生活中看得到的現象，請學生預測或解釋。
+3. 重點是看出學生原本怎麼想：每個選項代表一種常見的起點想法，答錯不代表學不好。`,
+    resp:"如果多數學生選這個選項，代表他們原本怎麼想；這節課可以從哪裡開始教、先安排什麼經驗或活動",
+    check:"沒有先學過這節課的學生也能作答，而且答案能看出他原本的想法"},
+  mid:{nm:"課中",goal:"作為教學方法之一，引發思考與討論",
+    rule:`1. 題目用在教學過程中，是教學的一部分，目的是讓學生思考和討論，不是打分數。
+2. 選一個學生容易意見分歧的問題，例如請學生先預測實驗結果，或判斷兩種說法哪一個對。
+3. 適合先讓每個人作答，小組討論後再作答一次（同儕教學）。`,
+    resp:"預期學生會爭論的點、引導討論的 1–2 個提問、什麼時候揭曉答案，以及揭曉後怎麼連回這節課的重點",
+    check:"題目確實有值得討論的分歧，不是一看就知道答案"},
+  post:{nm:"課後",goal:"了解這節課的學習情形",
+    rule:`1. 檢核這節課的學習目標有沒有達成。
+2. 至少一題要把這節課學到的概念用在新的情境，不能只靠記憶課本的句子。
+3. 題目要能區分「真的懂」和「只記得結論」。`,
+    resp:"依答對的情形判斷是否需要補救；如果很多學生選錯某個選項，下一節課可以怎麼補救（例如再做哪個活動、舉哪個例子）",
+    check:"只記得課本句子、沒有真的懂的學生，不一定能答對"}};
+function buildClass(){
+  const w=WHEN[st.gen.when]||null, kh=st.gen.fmt==="kahoot";
+  const n=Math.min(Math.max(parseInt(st.gen.ccount,10)||1,1),3);
+  const ct=kh?"mc":st.gen.ctype;
+  const tname={mc:"選擇題（四個選項）",short:"簡答題",mix:"選擇題與簡答題都要有"}[ct];
+  const mis=misList();
+  const set=[`- 年級：${gradeName()}（${stageName()}）`];
+  if(st.unit.trim())set.push(`- 單元：${st.unit.trim()}`);
+  set.push(`- 這節課學了什麼：${st.activity.trim()||B}`);
+  if(st.lc.length)set.push("- 學習內容：\n"+lines(st.lc,lcMap));
+  set.push("- 學生可能的迷思："+(mis.length?"\n"+mis.map(x=>"  ・"+x).join("\n"):"未提供，請你依這節課的內容推測 2–3 個常見迷思，並在教師版列出"));
+  set.push(`- 使用時機：${w?w.nm+"——"+w.goal:B}`);
+  set.push(`- 作答方式：${kh?"Kahoot 互動問答":"紙本"}`);
+  set.push(`- 題數與題型：${n} 題，${tname}`);
+  if(st.gen.context.trim())set.push(`- 希望情境貼近：${st.gen.context.trim()}`);
+  const kRule=kh?`
+5. Kahoot 的限制：每題題目 95 字以內（含標點），每個選項 60 字以內，2–4 個選項，只能是選擇題。題目需要情境時，把情境寫在「情境說明」，由老師先投影或唸給學生聽；題目本身只寫要問的部分。題目需要圖片時，請註明要放什麼圖，老師會在 Kahoot 裡自己加上。`:"";
+  const q=`你是協助國小自然科教師設計「課堂評量」的夥伴。請依下面的設定直接出題。
+
+【基本設定】
+${set.join("\n")}
+
+【${w?w.nm:"這個時機"}評量的出題重點】
+${w?w.rule:B}
+
+【共同要求】
+1. 只使用${stageName()}的概念與用詞，使用臺灣繁體中文與國小自然科常用名詞。
+2. 情境和數據要科學上正確，不依賴特定地區或家庭的生活經驗。
+3. 選擇題的每個錯誤選項都要對應一個真實的學生想法，不要放明顯不合理、一看就能刪掉的選項。
+4. 題目要短，學生 1–2 分鐘內可以作答完。${kRule}
+
+【請依序輸出】
+一、學生版：只有${kh?"情境說明和題目":"題目"}，不含答案，可以直接${kh?"投影":"印給學生"}。${!kh&&ct!=="mc"?"簡答題請留作答空間。":""}
+二、教師版：每一題附上
+  ・答案${ct!=="mc"?"（簡答題附參考答案，以及 0、1、2 分的判斷方式）":""}
+  ・每個選項代表的學生想法（對應哪一個迷思或起點想法）${ct!=="mc"?"；簡答題列出常見的錯誤回答與背後的想法":""}
+  ・教學回應建議：${w?w.resp:B}${kh?`
+三、Kahoot 匯入表格：用表格輸出，每一題一列，欄位依序為：題目｜選項1｜選項2｜選項3｜選項4｜作答時間（秒）｜正確答案。
+  ・作答時間只能是 5、10、20、30、60、120 其中一個。
+  ・正確答案填選項的編號（1–4）。
+  ・選項不到 4 個時，那一格留空。
+  ・表格前後不要加其他文字，方便我直接複製。`:""}
+${kh?"四":"三"}、自我檢查：每一題用一句話確認「${w?w.check:B}」。不符合的題目，請先修改再輸出。`+NEXT(`請先看看題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改；滿意了，可以直接使用，或按第 2 段「審題」的「複製」貼到這個對話，請我檢查。${kh?"要匯入 Kahoot：到 Kahoot 下載試算表範本，把匯入表格從「題目」那一欄開始貼上，存檔後在 Kahoot 選「匯入試算表」。":""}`);
+  const q2=`請審查你剛才出的題目（如果後來有調整，以最新的版本為準）。先不要修改，只提出問題與建議。
+
+1. 模擬作答：扮演下列學生作答，寫出他會選的答案和理由（每人 1–2 句）。
+   (a) ${st.gen.when==="pre"?"還沒學過這節課、只靠生活經驗的學生":"只記得課本結論、沒有真的懂的學生"}
+   (b) 持有迷思概念的學生
+
+2. 檢核下列項目，只列出「需修改」的項目與原因：
+   符合${w?w.nm:"這個時機"}評量的目的｜學生 1–2 分鐘內可以作答完｜科學內容正確｜答案唯一｜錯誤選項對應真實的學生想法｜沒有超出${stageName()}的範圍｜不依賴特定地區或生活經驗｜教學回應建議具體可行${kh?"｜符合 Kahoot 的字數和格式限制":""}
+
+3. 給一個最值得做的修改建議。`+NEXT(`審題完成。您可以直接告訴我「請依建議修改」，我會重新輸出學生版和教師版${kh?"，以及 Kahoot 匯入表格":""}。`);
+  return [{t:"出題",d:"一段提示詞，AI 直接輸出學生版與教師版"+(kh?"，以及 Kahoot 匯入表格":"")+"。",x:q},
+          tweakSheet(1,2,"class"),
+          {t:"審題（建議）",d:"題目滿意後，想更放心再用這段，貼到同一個對話。",x:q2,nx:"AI 出好題目後，先看看題目：想再改，用下面的「想再改一下？」；想請 AI 檢查，按第 2 段「審題」的「複製」貼到同一個對話。"}];
+}
 
 /* ---------- 出題 ---------- */
 function buildGen(){
@@ -657,13 +793,13 @@ const TWEAKS=[
   ["dis","錯誤選項更有診斷力","每個錯誤選項對應一個迷思","依學生常見的迷思概念重寫錯誤選項，並逐一說明每個錯誤選項對應的迷思。"]];
 const TW=Object.fromEntries(TWEAKS.map(t=>[t[0],t]));
 const twSel=()=>((st.pick||{}).tw||[]).filter(k=>TW[k]);
-function tweakSheet(after,review){
-  const sel=twSel(), ex=pv("twx"), asks=sel.map(k=>TW[k][3]);
+function tweakSheet(after,review,kind){
+  const sel=twSel().filter(k=>!(kind==="class"&&k==="set")), ex=pv("twx"), asks=sel.map(k=>TW[k][3]);
   if(ex)asks.push(ex);
-  const x=`請修改你剛才改寫的題目（如果已經改過不只一次，以最新的版本為準）：
+  const x=`請修改你剛才${kind==="class"?"出":"改寫"}的題目（如果已經改過不只一次，以最新的版本為準）：
 ${asks.length?asks.map((a,n)=>`${n+1}. ${a}`).join("\n"):B}
-其他要求不變。請輸出修改後的完整題目、答案、一句修改說明，以及認知層次。`+NEXT(`請先看看修改後的題目。還想改，回到命題網頁的「想再改一下？」重新勾選，再複製貼過來；滿意了，就按第 ${review} 段「審題」的「複製」貼到這個對話。`);
-  return {n:"選用",idx:"p",t:"想再改一下？",d:`看完 AI 改好的題目，覺得不夠理想才用；滿意的話跳過這裡，直接做第 ${review} 段審題。`,opt:1,tweak:1,review,x,
+其他要求不變。${kind==="class"?"請依原本的格式重新輸出完整的學生版和教師版"+(st.gen.fmt==="kahoot"?"，以及 Kahoot 匯入表格":"")+"，並用一句話說明修改了什麼。":"請輸出修改後的完整題目、答案、一句修改說明，以及認知層次。"}`+NEXT(`請先看看修改後的題目。還想改，回到命題網頁的「想再改一下？」重新勾選，再複製貼過來；滿意了，就按第 ${review} 段「審題」的「複製」貼到這個對話。`);
+  return {n:"選用",idx:"p",twk:kind==="class"?TWEAKS.filter(t=>t[0]!=="set"):TWEAKS,t:"想再改一下？",d:`看完 AI ${kind==="class"?"出":"改好"}的題目，覺得不夠理想才用；滿意的話跳過這裡，直接做第 ${review} 段審題。`,opt:1,tweak:1,review,x,
     need:!asks.length};
 }
 function buildFix(){
@@ -920,7 +1056,13 @@ function renderGuided(sheets,miss){
 function build(){
   const miss=[], m=st.mode;
   if(!stage())miss.push("年級");
-  if(m==="gen"){
+  const cl=m==="gen"&&cls();
+  if(cl){
+    if(!st.activity.trim())miss.push("這節課學了什麼");
+    if(!st.gen.when)miss.push("使用時機（課前、課中或課後）");
+    const n=parseInt(st.gen.ccount,10);if(!(n>=1&&n<=3))miss.push("題數（1–3 題）");
+  }
+  else if(m==="gen"){
     if(!st.lc.length)miss.push("至少一條學習內容");
     if(!st.aiSuggest&&!st.lp.length)miss.push("至少一條學習表現，或勾選「請 AI 建議」");
     if(!st.gen.types.length)miss.push("至少一種題型");
@@ -930,16 +1072,16 @@ function build(){
   if(m==="ana"&&!st.ana.paper.trim())miss.push("試卷內容");
   const box=$("missing");
   if(miss.length){box.hidden=false;box.innerHTML="<b>還需要填寫：</b><ul>"+miss.map(x=>"<li>"+x+"</li>").join("")+"</ul>"}else box.hidden=true;
-  const sheets=m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
-  if(m==="gen"){box.hidden=true;$("ready").hidden=true;renderGuided(sheets,miss);deidCheck(st.fix.orig,"deidFix");deidCheck(st.ana.paper,"deidAna");return}
+  const sheets=cl?buildClass():m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
+  if(m==="gen"&&!cl){box.hidden=true;$("ready").hidden=true;renderGuided(sheets,miss);deidCheck(st.fix.orig,"deidFix");deidCheck(st.ana.paper,"deidAna");return}
   gSig="";
   let i=0;sheets.forEach(x=>{x.no=x.n||String(++i);x.id=x.idx||x.no.replace("+","p")});
-  const sig=[m,st.level,st.fix.way,st.aiSuggest,sheets.map(x=>x.no+x.t+(x.picks||[]).map(p=>p.k).join("")).join("|")].join("/");
+  const sig=[m,st.level,st.fix.way,st.aiSuggest,st.gen.use,sheets.map(x=>x.no+x.t+(x.picks||[]).map(p=>p.k).join("")).join("|")].join("/");
   if(sig!==lastSig){
     lastSig=sig;copied.clear();
     $("sheets").innerHTML=sheets.map(x=>x.tweak?`<section class="sheet opt" id="sh_${x.id}" style="margin-bottom:14px"><div class="sheet-h"><span class="num opt">選用</span><div class="grow"><h2>${x.t}</h2><p id="d_${x.id}"></p></div><button type="button" class="btn primary" data-copy="${x.id}">複製</button></div>`+
       `<div class="picks"><ol class="tw-how"><li>勾選要怎麼改（可複選）</li><li>按右上角「複製」</li><li>貼到<b>同一個</b> AI 對話，AI 會再改一次</li></ol><div class="goals">`+
-      TWEAKS.map(t=>`<label class="goal"><input type="checkbox" data-tw="${t[0]}"><span><b>${t[1]}</b><small>${t[2]}</small></span></label>`).join("")+
+      (x.twk||TWEAKS).map(t=>`<label class="goal"><input type="checkbox" data-tw="${t[0]}"><span><b>${t[1]}</b><small>${t[2]}</small></span></label>`).join("")+
       `</div><label for="pk_twx">其他想改的地方（選填）<input type="text" id="pk_twx" data-pick="twx" placeholder="例：第 2 個選項太容易刪去；數據改成整數"></label><span class="hint">改完還不滿意，可以重新勾選，再複製一次。</span></div>`+
       `<div class="tip" id="tip_${x.id}" hidden></div><pre id="p_${x.id}"></pre></section>`:
       `<section class="sheet" id="sh_${x.id}" style="margin-bottom:14px"><div class="sheet-h"><span class="num">${x.no}</span><div class="grow"><h2>${x.t}</h2><p id="d_${x.id}"></p></div><button type="button" class="btn primary" data-copy="${x.id}">複製</button></div>`+
@@ -978,6 +1120,8 @@ document.addEventListener("change",e=>{
     if(!t.checked)return;
     if(k==="grade"){const old=stage();st.grade=t.value;if(stage()!==old){st.lc=[];st.lp=[]}}
     else setP(k,t.value);
+    if(k==="gen.fmt"&&t.value==="kahoot"){st.gen.ctype="mc";$("ct_mc").checked=true}
+    if(k==="gen.use"){copied.clear();gstep=1;gmax=1;gSig="";lastSig=""}
     if(k==="mode"){copied.clear();gstep=1;gmax=1;gSig=""}
     if(k!=="mode")touch();
     all();return;
