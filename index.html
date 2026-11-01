@@ -54,6 +54,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4vw,36px);l
 @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
 form{display:flex;flex-direction:column;gap:16px;min-width:0}
 form[data-mode=gen] .s-use{order:-5}
+form[data-mode=ana] .secbox[data-modes="ana"]{order:-3}
 form[data-mode=gen][data-use=class] .ex-only{display:none!important}
 form:not([data-mode=gen][data-use=class]) .cl-only{display:none!important}
 .chip input:disabled+span{opacity:.4;cursor:not-allowed}
@@ -92,6 +93,12 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .check{display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:500;background:var(--blue-wash);border-radius:4px;padding:8px 10px;cursor:pointer}
 .check input{accent-color:var(--blue);margin-top:5px;flex:none}
 .empty{padding:16px;color:var(--ink-soft);font-size:13.5px}
+.secbox{border:1px solid var(--warn);border-left:5px solid var(--warn);background:var(--warn-wash);border-radius:6px;padding:10px 14px;font-size:13.5px;line-height:1.65}
+.secbox b.t{display:block;font-size:14.5px;margin-bottom:2px}
+.secbox ol{margin:4px 0 0;padding-left:20px}
+.selfchk{margin-top:8px;font-size:13.5px}
+.selfchk summary{cursor:pointer;font-weight:600;color:var(--blue)}
+.selfchk ul{margin:6px 0 0;padding-left:20px;line-height:1.7}
 .deid{border-left:3px solid var(--warn);background:var(--warn-wash);border-radius:0 4px 4px 0;padding:8px 12px;font-size:13px}
 .deid b{color:var(--warn)}
 .deid ul{margin:4px 0 0;padding-left:20px}
@@ -256,6 +263,12 @@ footer .code{font-family:var(--f-code)}
           <label class="chip"><input type="radio" name="use" id="use_exam" value="exam" data-k="gen.use"><span>定期評量（期中、期末）</span></label>
         </div>
         <p class="use-desc" id="useDesc"></p>
+        <div class="secbox ex-only"><b class="t">期中、期末的題目要保密</b>
+          <ol>
+          <li><b>用學校帳號登入 Gemini</b>：學校的 Google 教育版帳號，對話不會被用來訓練模型。</li>
+          <li><b>用 ChatGPT 或個人帳號時，先關閉訓練設定</b>：ChatGPT 到「設定 → 資料控管」關閉「為所有人改善模型」，或改用「臨時聊天」；Gemini 個人帳號關閉「活動記錄」，或改用臨時對話。</li>
+          <li><b>AI 只產生草稿</b>：挑選、修改後在 Word 定稿，<b>定稿不要再貼回 AI</b>。</li>
+          </ol></div>
         <div class="cl-only" style="display:flex;flex-direction:column;gap:8px">
           <span class="lab">使用時機<span class="rq req">必填</span></span>
           <div class="chips">
@@ -354,6 +367,12 @@ footer .code{font-family:var(--f-code)}
       </fieldset>
 
       <!-- 析卷 -->
+      <div class="secbox" data-modes="ana"><b class="t">建議在考後使用試卷分析</b>
+        用已經考完的試卷做分析，結果作為下次命題的改進依據。考前就要分析即將使用的試卷時，請先做到：
+        <ol>
+          <li><b>用學校帳號登入 Gemini</b>：學校的 Google 教育版帳號，對話不會被用來訓練模型。</li>
+          <li><b>用 ChatGPT 或個人帳號時，先關閉訓練設定</b>：ChatGPT 到「設定 → 資料控管」關閉「為所有人改善模型」，或改用「臨時聊天」；Gemini 個人帳號關閉「活動記錄」，或改用臨時對話。</li>
+        </ol></div>
       <fieldset data-modes="ana">
         <legend>雙向細目表設定<span class="rq opt">選填</span></legend>
         <span class="hint">依臺北市國小自然領域雙向細目表格式：列為單元，欄為記憶、了解、高層次，填入配分，合計 100 分。</span>
@@ -397,7 +416,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.4.0</span> · 2026-10-24</span>
+    <span>版本 <span class="code">v0.4.1</span> · 2026-11-01</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -764,7 +783,7 @@ ${cogRule()}
 4. 總結最需要優先修改的 3 個問題。`+NEXT("審題完成。您可以直接請我依建議修改題目，或回到命題網頁重新設定再出題。");
   return [{t:"確認設定，提出情境",d:"複製後貼到 AI 的新對話。AI 會提出情境並停下，等您選擇。",x:p1},
           {t:"出題",d:"AI 回答第 1 段後，在下面填入您的選擇，再複製貼到同一個對話。",x:p2,nx:"AI 回答完後，在第 2 段填入您選擇的情境（AI 回答中的代號，例如 A），再按「複製」貼到同一個對話。",picks:[{k:"scene",lab:"您選擇的情境",ph:"例：A，或「A，但改成在教室進行」",req:1},{k:"mis",lab:"採用的迷思概念（選填，空白表示全部採用）",ph:"例：只用第 1 個"}].concat(st.aiSuggest?[{k:"lp",lab:"採用的學習表現（選填，空白表示採用 AI 建議的全部條目）",ph:"例：pa-Ⅱ-2、tr-Ⅱ-1"}]:[])},
-          (()=>{const rv=pv("rev")||"direct";
+          (()=>{const rv=pv("rev")==="ai"?"ai":"direct";
             if(rv==="self"){const p3s=p3.replace("請以審題委員的角度檢查剛才的題目。","請以審題委員的角度檢查我修改後的題目。")
               .replace("第三階段：審題。",`第三階段：審題。
 
@@ -1012,11 +1031,12 @@ function renderGuided(sheets,miss){
     }else if(disp===4){
       h=`<section class="sheet guide"><div class="g-h"><span class="g-k">全部完成</span><h2>出題流程完成！</h2></div><p class="g-p">接下來您可以：</p><ul class="todo">
         <li><b>請 AI 依審題建議修改</b>：直接在同一個 AI 對話中輸入，例如「請依審題建議修改第 2 題」。</li>
+        <li><b>在 Word 定稿</b>：挑選、修改題目並組成試卷。定稿是要考的題目，不要再貼回 AI；可以用步驟 3 的「自己檢查清單」檢查。</li>
         <li><b>換情境或題型再出一次</b>：按下方「回到步驟 1」，或先修改設定再重新開始。</li>
         <li><b>想再加強某一題</b>：把題目複製到本網頁的「改題」模式。</li></ul>
         <div class="g-nav"><button type="button" class="btn" data-gstep="3">← 回上一步</button><button type="button" class="btn" data-gstep="1">回到步驟 1</button></div></section>`;
     }else{
-      const x=sheets[disp-1], rv=pv("rev")||"direct";
+      const x=sheets[disp-1], rv=pv("rev")==="ai"?"ai":"direct";
       const t3={direct:[`先看過 AI 出的題目。`,`按「複製第 3 段提示詞」，貼到<b>同一個 AI 對話</b>送出。`,`AI 會模擬學生作答、逐題檢核。看完後按「審題完成」。`],
         ai:[`在下面寫出要怎麼改，例如「第 2 題的情境改成在教室裡」。`,`按「複製修改提示詞」，貼到<b>同一個 AI 對話</b>送出，等 AI 改完。`,`再按「複製第 3 段提示詞」，貼到同一個對話，請 AI 審題。`,`看完審題結果後按「審題完成」。`],
         self:[`把 AI 出的題目複製到 Word 或其他地方，依您的想法修改。`,`把修改好的題目整份貼在下面，<b>請保留題號與答案</b>。`,`按「複製第 3 段提示詞」，貼到<b>同一個 AI 對話</b>送出。AI 會以您的版本審題。`,`看完審題結果後按「審題完成」。`]};
@@ -1025,7 +1045,7 @@ function renderGuided(sheets,miss){
         3:t3[rv]}[disp];
       const title={1:"請 AI 提出情境",2:"選擇情境，請 AI 出題",3:"修改與審題"}[disp];
       const nextLab={1:"AI 已回答，前往步驟 2 →",2:"AI 已出完題，前往步驟 3 →",3:"審題完成 ✓"}[disp];
-      const revUI=disp===3?`<div class="g-rev"><span class="g-q">AI 出的題目，您要：</span><div class="chips">`+[["direct","直接審題"],["ai","請 AI 先修改"],["self","我自己改過了"]].map(([v,l])=>`<label class="chip"><input type="radio" name="rev" id="rv_${v}" value="${v}" data-rev="1" ${rv===v?"checked":""}><span>${l}</span></label>`).join("")+`</div><span class="hint">不管題目是 AI 出的還是您改的，最後都建議經過審題。</span></div>`:"";
+      const revUI=disp===3?`<div class="g-rev"><span class="g-q">AI 出的題目，您要：</span><div class="chips">`+[["direct","直接審題"],["ai","請 AI 先修改"]].map(([v,l])=>`<label class="chip"><input type="radio" name="rev" id="rv_${v}" value="${v}" data-rev="1" ${rv===v?"checked":""}><span>${l}</span></label>`).join("")+`</div><span class="hint">AI 出的題目建議先經過審題，再帶到 Word 定稿。定稿是要考的題目，不要再貼回 AI。</span><details class="selfchk"><summary>定稿後，用這份清單自己檢查</summary><ul><li>沒有讀情境的學生，能不能答對？能的話，情境只是裝飾。</li><li>有沒有超出學習階段的概念或用詞？</li><li>科學內容與數據是否正確？</li><li>答案是否唯一？</li><li>每個錯誤選項，是否對應學生真實的迷思？</li><li>閱讀負擔是否適當？</li><li>情境是否依賴特定地區或家庭的生活經驗？</li><li>標為高層次的題目，是否真的需要應用或分析？</li><li>題目之間有沒有互相提示答案？</li></ul></details></div>`:"";
       const pickHTML=pk=>`<label for="pk_${pk.k}"><span>${pk.lab}${pk.req?'<span class="rqm">必填</span>':""}</span>${pk.area?`<textarea id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}"></textarea>`:`<input type="text" id="pk_${pk.k}" data-pick="${pk.k}" placeholder="${esc(pk.ph)}">`}</label>`;
       const modBlock=x.x2?`<div class="g-act"><button type="button" class="btn primary big" data-copy="3a" id="g_copy3a">複製修改提示詞</button><div class="tip" id="tip_3a" hidden></div></div><details class="g-pre"><summary>看修改提示詞的內容（可略過）</summary><pre id="p_3a"></pre></details><div class="g-then">AI 改完後，再複製審題提示詞：</div>`:"";
       h=`<section class="sheet guide" id="sh_${disp}"><div class="g-h"><span class="g-k">步驟 ${disp}／3</span><h2>${title}</h2></div>${revUI}
