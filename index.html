@@ -102,6 +102,10 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .deid{border-left:3px solid var(--warn);background:var(--warn-wash);border-radius:0 4px 4px 0;padding:8px 12px;font-size:13px}
 .deid b{color:var(--warn)}
 .deid ul{margin:4px 0 0;padding-left:20px}
+.src{border:1px solid var(--rule);border-radius:4px;padding:8px 12px;font-size:13.5px;display:grid;gap:6px}
+.src-t{font-weight:600}
+.src ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.src button.btn{padding:3px 10px;font-size:13px}
 .alert{border:1px solid var(--warn);background:var(--warn-wash);border-radius:4px;padding:8px 12px;font-size:13px}
 .alert b{color:var(--warn)}
 details{font-size:13px;color:var(--ink-soft)}
@@ -334,9 +338,18 @@ footer .code{font-family:var(--f-code)}
       </fieldset>
       <fieldset data-modes="fix">
         <legend>原題<span class="rq req">必填</span></legend>
-        <div class="deid"><b>貼上前請先去識別化：</b>刪除校名、行政區、命題與審題教師姓名、學生姓名與班級座號。免費版 AI 輸入的內容可能被用於模型訓練。</div>
+        <div class="deid"><b>貼上或上傳前請先去識別化：</b>刪除校名、行政區、命題與審題教師姓名、學生姓名與班級座號。免費版 AI 輸入的內容可能被用於模型訓練。</div>
+        <div class="src">
+          <span class="src-t">提供題目的方式（三選一）</span>
+          <ol><li><b>貼上文字</b>：直接貼在下面的格子。</li>
+          <li><b>從 Word 檔帶入</b>：<button type="button" class="btn" data-docx="fix.orig">選擇 Word 檔（.docx）</button><input type="file" accept=".docx,.txt" hidden> 文字會自動填進下面的格子。檔案只在您的瀏覽器裡讀取，不會上傳。</li>
+          <li><b>檔案或照片直接交給 AI</b>：勾選下面這一項，複製提示詞後，在 AI 對話中附上檔案。</li></ol>
+          <div class="alert" id="docxMsg_fix" hidden></div>
+          <label class="check" for="fixFile"><input type="checkbox" id="fixFile" data-k="fix.file"> 題目在檔案或照片裡，我會直接上傳到 AI 對話（Word、PDF、照片都可以）</label>
+          <span class="hint" id="fixFileHint" hidden>不用貼題目。把提示詞貼到 AI 時，請<b>同時附上檔案</b>。上傳前請先刪除或遮住校名和姓名，網頁檢查不到檔案裡的內容。免費版 AI 每天能上傳的檔案數量有限。</span>
+        </div>
         <label class="lab" for="orig"><span id="origLab">題目文字（含選項）</span>
-          <textarea id="orig" class="big" data-k="fix.orig" placeholder="貼上題目。圖片請直接上傳到 AI 對話中。"></textarea>
+          <textarea id="orig" class="big" data-k="fix.orig" placeholder="貼上題目，或用上面的「選擇 Word 檔」帶入。圖片請直接上傳到 AI 對話中。"></textarea>
         </label>
         <div class="alert" id="deidFix" hidden></div>
         <div class="row">
@@ -384,8 +397,17 @@ footer .code{font-family:var(--f-code)}
       </fieldset>
       <fieldset data-modes="ana">
         <legend>試卷內容<span class="rq req">必填</span></legend>
-        <div class="deid"><b>貼上前請先去識別化，刪除：</b>
+        <div class="deid"><b>貼上或上傳前請先去識別化，刪除：</b>
           <ul><li>校名、行政區</li><li>命題與審題教師姓名</li><li>學生姓名、班級座號（作答過的試卷或掃描檔尤其要注意）</li><li>聯絡信箱、電話、繳交說明等行政資訊</li></ul>
+        </div>
+        <div class="src">
+          <span class="src-t">提供試卷的方式（三選一）</span>
+          <ol><li><b>貼上文字</b>：直接貼在下面的格子。</li>
+          <li><b>從 Word 檔帶入</b>：<button type="button" class="btn" data-docx="ana.paper">選擇 Word 檔（.docx）</button><input type="file" accept=".docx,.txt" hidden> 文字會自動填進下面的格子。檔案只在您的瀏覽器裡讀取，不會上傳。</li>
+          <li><b>檔案或照片直接交給 AI</b>：勾選下面這一項，複製提示詞後，在 AI 對話中附上檔案。</li></ol>
+          <div class="alert" id="docxMsg_ana" hidden></div>
+          <label class="check" for="anaFile"><input type="checkbox" id="anaFile" data-k="ana.file"> 試卷在檔案或照片裡，我會直接上傳到 AI 對話（Word、PDF、照片都可以）</label>
+          <span class="hint" id="anaFileHint" hidden>不用貼試卷文字。把第 1 段提示詞貼到 AI 時，請<b>同時附上檔案</b>。上傳前請先刪除或遮住校名和姓名，網頁檢查不到檔案裡的內容。掃描檔和照片，免費版 AI 比較容易讀錯，請核對 AI 列出的題目。</span>
         </div>
         <label class="lab" for="paper"><span id="paperLab">試卷文字</span>
           <span class="hint" id="paperHint"></span>
@@ -403,7 +425,7 @@ footer .code{font-family:var(--f-code)}
             <li>掃描檔沒有文字可複製，免費版 AI 辨識掃描圖也容易出錯。</li>
           </ul>
         </details>
-        <label class="check" for="upload"><input type="checkbox" id="upload" data-k="ana.upload"> 我會另外上傳試卷的 PDF 或圖片到 AI 對話中（圖多的大題建議勾選）</label>
+        <label class="check" for="upload" id="uploadWrap"><input type="checkbox" id="upload" data-k="ana.upload"> 我貼了文字，另外也會上傳試卷的 PDF 或圖片到 AI 對話中（圖多的大題建議勾選）</label>
       </fieldset>
     </form>
 
@@ -416,7 +438,7 @@ footer .code{font-family:var(--f-code)}
 
   <button type="button" class="jump" id="jumpBtn">看提示詞 ↓</button>
   <footer>
-    <span>版本 <span class="code">v0.4.2</span> · 2026-11-12</span>
+    <span>版本 <span class="code">v0.5.0</span> · 2026-11-13</span>
     <span>課綱條目來源：十二年國民基本教育課程綱要 自然科學領域（107 年 11 月，國家教育研究院）</span>
     <span>命題原則參考：國家教育研究院測驗及評量研究中心研究教師團隊〈素養導向評量命題〉；雙向細目表依臺北市國小自然領域使用表格</span>
   </footer>
@@ -475,8 +497,8 @@ const EXAMPLE={mode:"gen",grade:"5",level:"lite",publisher:"",unit:"熱的傳播
   ana:{rows:"單元",annot:false,upload:false,paper:"一、是非題（每題 2 分）\n（　）1. 熱會從溫度高的地方傳到溫度低的地方。\n（　）2. 冬天摸鐵欄杆覺得冰，是因為鐵把冷傳到手上。\n二、選擇題（每題 3 分）\n（　）1. 煮湯時，湯匙柄慢慢變燙，主要是哪一種熱的傳播？①傳導 ②對流 ③輻射\n三、題組（共 10 分）\n小華把兩杯同樣溫度的熱水，分別倒進保麗龍杯和不鏽鋼杯，每 5 分鐘記錄一次水溫：\n時間（分）：0、5、10、15\n保麗龍杯（℃）：80、76、72、69\n不鏽鋼杯（℃）：80、70、62、55\n（1）哪一個杯子保溫效果較好？請用表中的數據說明。（4 分）\n（2）如果要讓不鏽鋼杯更保溫，你會怎麼改良？說明理由。（6 分）"}};
 const BLANK={mode:"gen",grade:"",level:"lite",publisher:"",unit:"",activity:"",lc:[],lp:[],aiSuggest:false,miscon:"",
   gen:{use:"class",when:"",fmt:"paper",ccount:2,ctype:"mc",types:[],count:3,dist:"以了解為主，含一題高層次",context:""},
-  fix:{orig:"",ans:"",concept:"",way:"quick",scope:"中度",goals:[],perf:""},
-  ana:{rows:"單元",annot:false,upload:false,paper:""}};
+  fix:{orig:"",ans:"",concept:"",way:"quick",scope:"中度",goals:[],perf:"",file:false},
+  ana:{rows:"單元",annot:false,upload:false,paper:"",file:false}};
 const clone=o=>JSON.parse(JSON.stringify(o));
 let st=clone(BLANK), isExample=false;
 try{localStorage.removeItem("sciPromptV2");localStorage.removeItem("sciPromptDraft")}catch(e){}
@@ -566,7 +588,9 @@ function applyMode(){
   const kh=st.gen.fmt==="kahoot";
   ["short","mix"].forEach(k=>$("ct_"+k).disabled=kh);
   $("fmtHint").textContent=kh?"Kahoot 只能匯入選擇題。AI 會另外輸出一張匯入表格：到 Kahoot 下載試算表範本，把表格從「題目」那一欄開始貼上，存檔後在 Kahoot 選「匯入試算表」（Import spreadsheet）。":"AI 會輸出可以直接印給學生的學習單，以及教師版。";
-  $("paperLab").textContent=lite()?"試卷文字（第一批）":"試卷文字（整份）";
+  $("fixFileHint").hidden=!st.fix.file;$("anaFileHint").hidden=!st.ana.file;$("uploadWrap").hidden=!!st.ana.file;
+  if(st.fix.file)$("origLab").textContent="題目文字（已勾選用檔案提供，可以留空）";
+  $("paperLab").textContent=st.ana.file?"試卷文字（已勾選用檔案提供，可以留空）":lite()?"試卷文字（第一批）":"試卷文字（整份）";
   $("paperHint").textContent=lite()?"精簡模式請分批：先貼一個大題（題組），是非、選擇等區塊每次約 10 小題。其餘批次用右邊的「後續批次」提示詞接著貼。":"可貼上整份試卷。題號請保留試卷原本的編號。";
 }
 function syncForm(){
@@ -593,6 +617,9 @@ function deidCheck(text,box){
 /* v0.4.2：依評量文獻補強（Haladyna 等 2002 選擇題命題準則；Rodriguez 2005 選項數；Mislevy 證據中心設計；Wiliam 樞紐題） */
 const OPTRULE="選擇題的寫法：題幹用正面敘述，避免「不是」「除了」；各選項的長度與寫法相近，正確選項不要特別長或特別完整；不用「總是」「絕不」「一定」等絕對用語；選項不要重複題幹的關鍵字；不放一看就能刪掉的選項。";
 const OPTCHK="｜選項沒有洩漏答案的線索（正確選項沒有特別長或特別完整、沒有「總是」「絕不」等絕對用語、沒有重複題幹的關鍵字、沒有一看就能刪掉的選項）｜題幹用正面敘述";
+/* v0.5.0：題目放在程式碼區塊，方便一鍵複製；說明集中到「教師參考」 */
+const QBOX=what=>`把${what}放在同一個程式碼區塊裡（上下各用一行三個反引號包起來），方便我一鍵複製貼到 Word。區塊裡只放題號、情境、題目和選項，用純文字；不要放答案、解析、星號或井字號等符號，也不要任何說明。`;
+const FILEQ=many=>`原題在我上傳的檔案或照片中，請從檔案讀取。${many?"":"檔案裡如果不只一題，請處理第一題，並在回覆最後提醒我還有哪幾題沒處理。"}讀不清楚的字或圖，請標出位置，不要自行猜測。`;
 const HIGHRULE="情境、數據或例子如果和課本實驗、課堂上用過的相同，即使問「為什麼」，也只算記憶或了解；高層次的題目要用學生沒看過的新材料。";
 const lines=(arr,map)=>arr.map(c=>`  ${c}　${map[c].t}`).join("\n");
 const misList=()=>st.miscon.split("\n").map(s=>s.trim()).filter(Boolean);
@@ -691,8 +718,8 @@ ${w?w.rule:B}
 5. 題目要短，學生 1–2 分鐘內可以作答完。${kRule}
 
 【請依序輸出】
-一、學生版：只有${kh?"情境說明和題目":"題目"}，不含答案，可以直接${kh?"投影":"印給學生"}。${!kh&&ct!=="mc"?"簡答題請留作答空間。":""}
-二、教師版：每一題附上
+一、學生版：只有${kh?"情境說明和題目":"題目"}，不含答案，可以直接${kh?"投影":"印給學生"}。${QBOX("整份學生版")}${!kh&&ct!=="mc"?"簡答題請留作答空間。":""}
+二、教師版：用條列，每一項一句話，不要長篇說明。每一題附上
   ・這題要看的證據：用一句話寫出「學生怎麼回答代表懂了，怎麼回答代表還不懂」
   ・答案${ct!=="mc"?"（簡答題附參考答案，以及 0、1、2 分的判斷方式）":""}
   ・每個選項代表的學生想法（對應哪一個迷思或起點想法）${ct!=="mc"?"；簡答題列出常見的錯誤回答與背後的想法":""}
@@ -702,7 +729,7 @@ ${w?w.rule:B}
   ・正確答案填選項的編號（1–4）。
   ・選項不到 4 個時，那一格留空。
   ・表格前後不要加其他文字，方便我直接複製。`:""}
-${kh?"四":"三"}、自我檢查：每一題用一句話確認「${w?w.check:B}」。不符合的題目，請先修改再輸出。`+NEXT(`請先看看題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改；滿意了，可以直接使用，或按第 2 段「審題」的「複製」貼到這個對話，請我檢查。${kh?"要匯入 Kahoot：到 Kahoot 下載試算表範本，把匯入表格從「題目」那一欄開始貼上，存檔後在 Kahoot 選「匯入試算表」。":""}`);
+${kh?"四":"三"}、自我檢查：輸出前先確認每一題「${w?w.check:B}」，不符合的題目先修改。檢查的過程不用寫出來，只在最後用一句話告訴我檢查結果。`+NEXT(`請先看看題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改；滿意了，可以直接使用，或按第 2 段「審題」的「複製」貼到這個對話，請我檢查。${kh?"要匯入 Kahoot：到 Kahoot 下載試算表範本，把匯入表格從「題目」那一欄開始貼上，存檔後在 Kahoot 選「匯入試算表」。":""}`);
   const q2=`請審查你剛才出的題目（如果後來有調整，以最新的版本為準）。先不要修改，只提出問題與建議。
 
 1. 模擬作答：扮演下列學生作答，寫出他會選的答案和理由（每人 1–2 句）。
@@ -765,16 +792,13 @@ ${types}
 
 【各題型要求】`+st.gen.types.map(t=>"\n・"+req[t]).join("")+`
 
-【每一題都要附上】
-・正確答案
-・證據敘述：答對代表學生能做到什麼
-・解析：學生需要用到情境中的哪些資訊、哪個概念
-・認知層次與一句判斷理由
-
 ${cogRule()}
 
-【最後用表格整理】
-題號｜題型｜單元｜學習內容代碼｜學習表現代碼｜認知層次｜可診斷的迷思概念｜答案
+【輸出格式】回覆分成兩區，請依序輸出；兩區之外不要再加開場白或其他說明。
+一、題目（可直接複製）：${QBOX("全部題目")}需要圖表的地方，在題目裡用〔圖：……〕描述，由我自行繪製。
+二、教師參考：用一張表格整理，每一題一列，每一格盡量用一句話：
+題號｜題型｜答案｜認知層次與理由｜各錯誤選項對應的迷思｜證據敘述（答對代表學生能做到什麼）｜學習內容代碼｜學習表現代碼｜單元
+非選題的評分規準與模擬學生回答，列在表格下方。
 表格下方列出記憶、了解、高層次各有幾題。這個階段只出題，不要配分。`+summary("各題題號、題型、認知層次與答案")+NEXT("請先看過題目，再回到命題網頁按第 3 段的「複製」貼到這個對話，我會幫您審題。")+`
 請在這裡結束回覆，等我要求審題。`;
 
@@ -807,7 +831,7 @@ ${P("revText")}
             if(rv==="ai"){const mod=`請依照下面的要求，修改你剛才出的題目：
 ${P("revAsk")}
 
-修改後請輸出：完整的修改後題目、正確答案與解析，並重新整理表格（題號｜題型｜單元｜認知層次｜可診斷的迷思概念｜答案）。沒有要求修改的題目維持原樣。修改後的版本就是之後審題的依據。`+NEXT("請確認修改後的題目，再回到命題網頁按「複製第 3 段提示詞」貼到這個對話，我會幫您審題。")+`\n請在這裡結束回覆，等我要求審題。`;
+修改後請依原本的兩區格式重新輸出：一、全部題目（放在程式碼區塊，只有題目與選項）；二、教師參考表格。沒有要求修改的題目維持原樣。修改後的版本就是之後審題的依據。`+NEXT("請確認修改後的題目，再回到命題網頁按「複製第 3 段提示詞」貼到這個對話，我會幫您審題。")+`\n請在這裡結束回覆，等我要求審題。`;
               return {t:"審題",d:"",x:p3,x2:mod,nx:"AI 出完題目後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。",picks:[{k:"revAsk",lab:"要怎麼改？",ph:"例：第 2 題的情境改成在教室裡；第 1 題選項 C 太容易排除，換一個",area:1,req:1,for:"3a"}]}}
             return {t:"審題",d:"AI 出題後，複製貼到同一個對話。",x:p3,nx:"AI 出完題目後，先看過題目，再按第 3 段的「複製」貼到同一個對話，請 AI 審題。"}})()];
 }
@@ -827,9 +851,14 @@ function tweakSheet(after,review,kind){
   if(ex)asks.push(ex);
   const x=`請修改你剛才${kind==="class"?"出":"改寫"}的題目（如果已經改過不只一次，以最新的版本為準）：
 ${asks.length?asks.map((a,n)=>`${n+1}. ${a}`).join("\n"):B}
-其他要求不變。${kind==="class"?"請依原本的格式重新輸出完整的學生版和教師版"+(st.gen.fmt==="kahoot"?"，以及 Kahoot 匯入表格":"")+"，並用一句話說明修改了什麼。":"請輸出修改後的完整題目、答案、一句修改說明，以及認知層次。"}`+NEXT(`請先看看修改後的題目。還想改，回到命題網頁的「想再改一下？」重新勾選，再複製貼過來；滿意了，就按第 ${review} 段「審題」的「複製」貼到這個對話。`);
+其他要求不變。${kind==="class"?"請依原本的格式重新輸出完整的學生版和教師版"+(st.gen.fmt==="kahoot"?"，以及 Kahoot 匯入表格":"")+"，並用一句話說明修改了什麼。":"請依原本的格式輸出：先是修改後的完整題目（放在程式碼區塊，只有題目與選項），接著條列答案、一句修改說明和認知層次。"}`+NEXT(`請先看看修改後的題目。還想改，回到命題網頁的「想再改一下？」重新勾選，再複製貼過來；滿意了，就按第 ${review} 段「審題」的「複製」貼到這個對話。`);
   return {n:"選用",idx:"p",twk:kind==="class"?TWEAKS.filter(t=>t[0]!=="set"):TWEAKS,t:"想再改一下？",d:`看完 AI ${kind==="class"?"出":"改好"}的題目，覺得不夠理想才用；滿意的話跳過這裡，直接做第 ${review} 段審題。`,opt:1,tweak:1,review,x,
     need:!asks.length};
+}
+function origText(many){
+  const t=st.fix.orig.trim();
+  if(st.fix.file)return FILEQ(many)+(t?"\n另外補充的文字：\n"+t:"");
+  return t||"（請貼上原題）";
 }
 function buildFix(){
   if(st.fix.way!=="full"){
@@ -839,12 +868,12 @@ function buildFix(){
 - 年級：${gradeName()}（${stageName()}）
 
 【原題】
-${st.fix.orig.trim()||"（請貼上原題）"}
+${origText(false)}
 
 - 原題答案：${st.fix.ans.trim()||"未提供"}${st.fix.concept.trim()?"\n- 這題想測的概念："+st.fix.concept.trim():""}${st.fix.perf.trim()?"\n- 學生作答情況："+st.fix.perf.trim():""}
 
 【我想怎麼改】
-${gk.length?gk.map((k,n)=>`${n+1}. ${GOAL[k][3]}`).join("\n"):"我沒有指定方向。請你先用 2–3 句說明原題最主要的問題，再選一個最適合的方向改寫，並說明為什麼選這個方向。"}
+${gk.length?gk.map((k,n)=>`${n+1}. ${GOAL[k][3]}`).join("\n"):"我沒有指定方向。請你判斷原題最主要的問題，選一個最適合的方向改寫，並在「教師參考」的修改說明裡寫出原題的問題和選這個方向的理由。"}
 
 【改寫要求】
 1. 學生必須讀懂情境中的資訊才能作答，不能只靠背誦。
@@ -854,13 +883,15 @@ ${gk.length?gk.map((k,n)=>`${n+1}. ${GOAL[k][3]}`).join("\n"):"我沒有指定�
 5. 使用臺灣繁體中文與國小自然科常用名詞。
 6. ${OPTRULE}
 
-【請直接輸出】
-1. 改寫後的題目${lite()?"":"（兩個不同版本）"}與正確答案
-2. 修改說明（2–3 點）：改了什麼，為什麼這樣改更符合素養導向
-3. 認知層次：原題 → 改題（記憶／了解／高層次）
-4. 這次用的改題方法：用一句話寫出來，讓我下次可以自己套用
-5. 自我檢查：沒有讀情境的學生能不能答對？如果能，請先再修改一次才輸出。
-如果原題用來測基本概念已經很恰當、不需要改寫，請直接說明，只做必要的文字修飾。題目若有圖片，我會另外上傳。`+NEXT("請先看看改好的題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改，再複製貼過來；滿意了，就按第 2 段「審題」的「複製」貼到這個對話。");
+【輸出格式】回覆分成兩區，請依序輸出；兩區之外不要再加開場白或其他說明。
+一、改寫後的題目（可直接複製）：${QBOX(lite()?"改寫後的題目":"兩個不同版本的題目（各一個區塊）")}
+二、教師參考：用條列，每一項一句話：
+  ・正確答案
+  ・修改說明（2–3 點）：改了什麼，為什麼這樣改更符合素養導向
+  ・認知層次：原題 → 改題（記憶／了解／高層次）
+  ・這次用的改題方法：一句話，讓我下次可以自己套用${st.fix.file?"\n  ・你從檔案讀到的原題：照原文列出，讓我核對有沒有讀錯":""}
+輸出前先自我檢查：沒有讀情境的學生能不能答對？如果能，請先再修改一次。檢查的過程不用寫出來。
+如果原題用來測基本概念已經很恰當、不需要改寫，請直接說明，只做必要的文字修飾。${st.fix.file?"":"題目若有圖片，我會另外上傳。"}`+NEXT("請先看看改好的題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改，再複製貼過來；滿意了，就按第 2 段「審題」的「複製」貼到這個對話。");
     const q2=`請審查你剛才改寫的題目（如果後來有調整，以最新的版本為準）。先不要再改寫，只提出問題與建議。
 
 1. 模擬作答：扮演下列學生作答，寫出他會選的答案和理由（每人 1–2 句）。
@@ -883,7 +914,7 @@ ${gk.length?gk.map((k,n)=>`${n+1}. ${GOAL[k][3]}`).join("\n"):"我沒有指定�
 ${baseSettings()}
 
 【原題】${lite()?"":"（最多三題，請逐題診斷）"}
-${st.fix.orig.trim()||"（請貼上原題）"}
+${origText(!lite())}
 
 - 原題答案：${st.fix.ans.trim()||"未提供"}
 - 這題想測的概念：${st.fix.concept.trim()||"未提供，請你推論"}
@@ -894,7 +925,7 @@ ${st.fix.orig.trim()||"（請貼上原題）"}
 ${principles()}
 
 【第一階段要做的事】
-1. 推論原題對應的學習內容、學習表現與想測的概念；我已提供的，檢查是否吻合。
+${st.fix.file?"0. 先把你從檔案讀到的原題照原文列出，讓我核對有沒有讀錯。\n":""}1. 推論原題對應的學習內容、學習表現與想測的概念；我已提供的，檢查是否吻合。
 2. 判斷原題的認知層次（記憶／了解／高層次），附一句理由。
 3. 指出原題的問題，從下列類型中挑出適用的並說明：
    只考記憶｜情境只是裝飾｜情境不真實｜誘答選項沒有診斷力｜超綱或用詞不當｜答案有爭議｜閱讀負擔過重｜情境反而降低認知層次｜情境依賴特定地區或生活經驗
@@ -911,14 +942,17 @@ ${principles()}
 - 改寫方向：${P("dir")}
 - 補充要求：${pv("extra")||"無"}
 
-請依「${sc}」的改寫幅度改寫，並附上：
-・改寫後的題目與正確答案
-・證據敘述：答對代表學生能做到什麼
-・解析：學生需要用到情境中的哪些資訊、哪個概念
-・每個錯誤選項對應的迷思概念（非選題則附 0、1、2 分的評分規準）
-・改寫後的認知層次與一句理由，並寫出「原題：○○ → 改題：○○」
+請依「${sc}」的改寫幅度改寫。回覆分成三區，請依序輸出；之外不要再加開場白或其他說明。
 
-【原題與改題對照表】
+一、改寫後的題目（可直接複製）：${QBOX("改寫後的題目")}
+
+二、教師參考：用條列，每一項一句話：
+・正確答案
+・證據敘述：答對代表學生能做到什麼
+・每個錯誤選項對應的迷思概念（非選題則附 0、1、2 分的評分規準）
+・認知層次與理由，並寫出「原題：○○ → 改題：○○」
+
+三、原題與改題對照表：
 ${lite()?"修改處｜原題寫法｜改寫後｜為什麼這樣改":"修改處｜原題寫法｜改寫後｜對應的問題類型｜為什麼這樣改"}`+summary("改寫後的題目重點、答案與認知層次")+NEXT("請先看看改好的題目。想再改，回到命題網頁的「想再改一下？」勾選要怎麼改；滿意了，就按第 3 段「審題」的「複製」貼到這個對話。")+`
 請在這裡結束回覆，等我要求審題。`;
 
@@ -947,12 +981,12 @@ function buildAna(){
   const noRange=!st.unit.trim();
   const info=[baseSettings(),`- 雙向細目表的列：依${rows}`];
   if(st.ana.annot)info.push("- 試卷已逐題標註認知層次");
-  if(st.ana.upload)info.push("- 我另外上傳了試卷的 PDF 或圖片：圖表內容請以圖片為準，文字以我貼上的為準");
+  if(st.ana.upload&&!st.ana.file)info.push("- 我另外上傳了試卷的 PDF 或圖片：圖表內容請以圖片為準，文字以我貼上的為準");
   let rules=`【分析規則】
 1. 題號沿用試卷原本的編號。
 2. 逐小題分析：題組中的每一小題分別歸類${rows}與認知層次，不要整組歸成同一類。
 3. 依各大題的計分說明（每題、每格、每條線、每答、百分比）換算每一小題的配分；看不出來時先問我，不要猜。
-4. 需要看圖才能判斷的題目（看圖、連連看、作圖），${st.ana.upload?"若圖片不清楚，":""}標記「需要圖片」，不要猜測內容。
+4. 需要看圖才能判斷的題目（看圖、連連看、作圖），${st.ana.upload||st.ana.file?"若圖片不清楚，":""}標記「需要圖片」，不要猜測內容。
 5. 「備用題」不列入分析與配分。
 6. 科學閱讀的文章，一併檢查內容的科學正確性，以及題目是否只要在文章中找字句就能作答。
 7. 認知層次分記憶、了解、高層次（應用、分析、評鑑、創作），依 Bloom 認知領域教育目標分類修訂版。判斷為高層次時，要說明學生需要應用或分析什麼；熟悉的題型、只換了情境的題目，不一定是高層次。${HIGHRULE}
@@ -969,7 +1003,7 @@ function buildAna(){
 用表格逐小題列出：
 題號｜${rows}｜認知層次｜判斷理由（一句）｜配分｜素養題特徵（是／否）｜發現的問題（沒有就留空）
 「素養題特徵」指：必須讀懂情境中的資訊才能作答。`;
-  const flow=lite()?`這是第一批（一個大題，或約 10 小題）。分析完這一批後，用表格輸出【累積摘要】：各${rows}在記憶、了解、高層次的配分小計，以及已發現問題的題號。`+NEXT("請回到網頁，在「後續批次」貼上下一個大題，再按「複製」貼到這個對話；全部批次都分析完後，改複製第 2 段。")+`
+  const flow=lite()?`這是第一批（一個大題，或約 10 小題）。分析完這一批後，用表格輸出【累積摘要】：各${rows}在記憶、了解、高層次的配分小計，以及已發現問題的題號。`+NEXT(st.ana.file?"請回到網頁，按「後續批次」的「複製」貼到這個對話，我會接著分析下一個大題；全部分析完後，改複製第 2 段。":"請回到網頁，在「後續批次」貼上下一個大題，再按「複製」貼到這個對話；全部批次都分析完後，改複製第 2 段。")+`
 然後結束回覆，等我貼下一批。`
     :`這是整份試卷。`+NEXT("請回到網頁按第 2 段的「複製」貼到這個對話，我會彙整雙向細目表。")+`
 分析完成後結束回覆，等我要求彙整雙向細目表。`;
@@ -990,14 +1024,14 @@ ${first}【流程】
 ${flow}
 
 【試卷內容${lite()?"（第一批）":""}】
-${st.ana.paper.trim()||"（請貼上試卷內容）"}
+${st.ana.file?"試卷在我上傳的檔案或照片中，請從檔案讀取"+(lite()?"；這一批只分析第一個大題（或前 10 小題左右）":"")+"。讀不清楚的字或圖，請標出題號，不要自行猜測。"+(st.ana.paper.trim()?"\n另外補充的文字：\n"+st.ana.paper.trim():""):(st.ana.paper.trim()||"（請貼上試卷內容）")}
 
 （以上是試卷內容。請依規則分析，完成後依流程結束回覆。）`;
 
-  const pc=`接續分析下一批。規則與輸出格式和上一批相同。分析完後，把這一批加進【累積摘要】並輸出更新後的摘要。回覆的最後，請原封不動加上：「【下一步】還有下一批，就回到網頁在『後續批次』貼上後複製；全部分析完，就複製第 2 段。」然後結束回覆。
+  const pc=`接續分析下一批。規則與輸出格式和上一批相同。分析完後，把這一批加進【累積摘要】並輸出更新後的摘要。回覆的最後，請原封不動加上：「【下一步】還有下一批，就回到網頁${st.ana.file?"再按一次『後續批次』的複製":"在『後續批次』貼上後複製"}；全部分析完，就複製第 2 段。」然後結束回覆。
 
 【下一批試卷內容】
-${P("batch")}`;
+${st.ana.file?(pv("batch")||"請接著分析檔案中的下一個大題（或接下來約 10 小題）；如果檔案已經全部分析完，請直接告訴我。"):P("batch")}`;
 
   const p2=`第二階段：彙整雙向細目表。試卷已全部分析完畢。
 
@@ -1020,7 +1054,7 @@ ${P("batch")}`;
 2. 指出這份試卷的 2 個優點。
 3. 提醒我哪些事項 AI 無法確認、需要我自己檢查，例如：是否引用坊間測驗卷或考古題、40 分鐘內能否作答完畢、圖片中的內容。`+NEXT("分析完成。需要改寫的題目，可以到命題網頁的「改題」模式處理。");
   const out2=[{t:"逐題分析",d:noRange?"複製後貼到 AI 的新對話。AI 會先推斷單元請您確認，再逐題分析。":"複製後貼到 AI 的新對話。AI 逐小題分析，完成後停下。",x:p1}];
-  if(lite())out2.push({t:"後續批次",d:"每有一批就用一次：在下面貼上下一個大題，再複製貼到同一個對話。",x:pc,n:"1+",nx:"AI 分析完這一批後，在「後續批次」貼上下一個大題，再按「複製」貼到同一個對話。",picks:[{k:"batch",lab:"下一批試卷內容",ph:"貼上下一個大題。請先去識別化。",area:1,req:1}]});
+  if(lite())out2.push({t:"後續批次",d:"每有一批就用一次：在下面貼上下一個大題，再複製貼到同一個對話。",x:pc,n:"1+",nx:"AI 分析完這一批後，在「後續批次」貼上下一個大題，再按「複製」貼到同一個對話。",picks:[st.ana.file?{k:"batch",lab:"要分析哪一個大題（選填，空白表示接著下一個大題）",ph:"例：第三大題"}:{k:"batch",lab:"下一批試卷內容",ph:"貼上下一個大題。請先去識別化。",area:1,req:1}]});
   out2.push({t:"彙整雙向細目表",d:"全部分析完後，複製貼到同一個對話。",x:p2,nx:lite()?"AI 分析完後，還有下一批就繼續用「後續批次」；全部分析完，再按第 2 段的「複製」貼到同一個對話。":"AI 分析完後，按第 2 段的「複製」貼到同一個對話，請 AI 彙整雙向細目表。"},{t:"改善建議",d:"彙整完成後，複製貼到同一個對話。",x:p3,nx:"AI 彙整完後，按第 3 段的「複製」貼到同一個對話，請 AI 提出改善建議。"});
   return out2;
 }
@@ -1100,8 +1134,8 @@ function build(){
     if(!st.gen.types.length)miss.push("至少一種題型");
     const n=parseInt(st.gen.count,10);if(!(n>=1&&n<=maxCount()))miss.push(`題數（1–${maxCount()} 題）`);
   }
-  if(m==="fix"&&!st.fix.orig.trim())miss.push("原題");
-  if(m==="ana"&&!st.ana.paper.trim())miss.push("試卷內容");
+  if(m==="fix"&&!st.fix.orig.trim()&&!st.fix.file)miss.push("原題（貼上文字、從 Word 檔帶入，或勾選用檔案提供）");
+  if(m==="ana"&&!st.ana.paper.trim()&&!st.ana.file)miss.push("試卷內容（貼上文字、從 Word 檔帶入，或勾選用檔案提供）");
   const box=$("missing");
   if(miss.length){box.hidden=false;box.innerHTML="<b>還需要填寫：</b><ul>"+miss.map(x=>"<li>"+x+"</li>").join("")+"</ul>"}else box.hidden=true;
   const sheets=cl?buildClass():m==="gen"?buildGen():m==="fix"?buildFix():buildAna();
@@ -1167,6 +1201,44 @@ document.addEventListener("input",e=>{
   setP(k,t.value);touch();build();
 });
 $("lcSearch").addEventListener("input",renderPicker);
+/* v0.5.0：在瀏覽器裡讀取 Word 檔（.docx）的文字，檔案不會上傳 */
+async function docxText(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf),td=new TextDecoder();
+  let e=buf.byteLength-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;
+  if(e<0)throw new Error("zip");
+  let n=dv.getUint16(e+10,true),p=dv.getUint32(e+16,true);
+  for(let i=0;i<n&&dv.getUint32(p,true)===0x02014b50;i++){
+    const method=dv.getUint16(p+10,true),csize=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),off=dv.getUint32(p+42,true);
+    if(td.decode(u8.subarray(p+46,p+46+nl))==="word/document.xml"){
+      const st0=off+30+dv.getUint16(off+26,true)+dv.getUint16(off+28,true),data=u8.subarray(st0,st0+csize);
+      const xml=method===0?td.decode(data):await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+      return xmlText(xml);
+    }
+    p+=46+nl+el+cl;
+  }
+  throw new Error("nodoc");
+}
+function xmlText(xml){
+  const doc=new DOMParser().parseFromString(xml,"application/xml"),out=[];
+  const para=p=>{let t="";(function w(n){for(const c of n.childNodes){const nm=c.nodeName;if(nm==="w:t")t+=c.textContent;else if(nm==="w:tab")t+="\t";else if(nm==="w:br"||nm==="w:cr")t+="\n";else if(nm!=="w:instrText"&&nm!=="w:del")w(c)}})(p);return t};
+  (function walk(n){for(const c of n.childNodes){const nm=c.nodeName;
+    if(nm==="w:p")out.push(para(c));
+    else if(nm==="w:tr")out.push([...c.childNodes].filter(x=>x.nodeName==="w:tc").map(tc=>[...tc.getElementsByTagName("w:p")].map(para).filter(Boolean).join(" ")).join("｜"));
+    else walk(c)}})(doc.documentElement);
+  return out.join("\n").replace(/\n{3,}/g,"\n\n").trim();
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-docx]");if(b)b.nextElementSibling.click()});
+document.addEventListener("change",async e=>{
+  const inp=e.target;if(inp.type!=="file"||!inp.previousElementSibling||!inp.previousElementSibling.dataset.docx)return;
+  const k=inp.previousElementSibling.dataset.docx,f=inp.files[0],msg=$("docxMsg_"+k.split(".")[0]);inp.value="";if(!f)return;
+  const say=h=>{msg.hidden=false;msg.innerHTML=h};
+  try{
+    const txt=/\.txt$/i.test(f.name)?await f.text():await docxText(await f.arrayBuffer());
+    if(!txt)throw new Error("empty");
+    const old=String(getP(k)||"").trim();setP(k,old?old+"\n\n"+txt:txt);syncForm();all();
+    say("已帶入「"+esc(f.name)+"」的文字（"+txt.length+" 字）"+(old?"，接在原本的內容後面":"")+"。請檢查：<ul><li>Word 的<b>自動編號</b>（題號、選項編號）不會帶入，請補上。</li><li>圖片不會帶入，請直接上傳到 AI 對話。</li><li>校名、姓名請刪除。</li></ul>");
+  }catch(err){say("讀不到這個檔案的文字。只支援 .docx（較舊的 .doc 請先在 Word 另存成 .docx），或改用貼上文字、把檔案直接交給 AI。")}
+});
 document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset.pick;if(!k)return;(st.pick||(st.pick={}))[k]=e.target.value;build()});
 $("jumpBtn").addEventListener("click",()=>$("aside").scrollIntoView({behavior:"smooth",block:"start"}));
 try{new IntersectionObserver(es=>es.forEach(e=>$("jumpBtn").hidden=e.isIntersecting),{threshold:0}).observe($("aside"))}catch(e){}
