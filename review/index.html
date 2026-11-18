@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>定期評量 AI 陪伴訂正｜教師分享包</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f7f4ec; --card:#fff; --ink:#1f2937; --sub:#4b5563; --muted:#6b7280;
+    --g9:#1b4332; --g7:#2d6a4f; --g5:#40916c; --g1:#ebf7ef; --line:#e5dfd1;
+    --amber:#92400e; --amber-bg:#fef8e7; --amber-line:#fcd34d;
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Noto Sans TC',-apple-system,"Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.75;font-size:17px}
+  header{background:linear-gradient(135deg,var(--g9),var(--g7));color:#fff;padding:40px 20px 34px}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px}
+  header .wrap{padding:0}
+  h1{margin:0 0 8px;font-size:1.9rem;font-weight:900;letter-spacing:.5px}
+  header p{margin:0;opacity:.9;max-width:680px}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .tags span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:3px 12px;font-size:.85rem;font-weight:700}
+  nav.toc{background:#fff;border-bottom:2px solid var(--line);position:sticky;top:0;z-index:5}
+  nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding:10px 20px}
+  nav.toc a{white-space:nowrap;text-decoration:none;color:var(--g7);font-weight:700;font-size:.9rem;padding:4px 12px;border-radius:999px;border:1.5px solid var(--line)}
+  nav.toc a:hover{background:var(--g1)}
+  main{padding:26px 0 60px}
+  section{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:24px 26px;margin-bottom:20px}
+  h2{margin:0 0 6px;font-size:1.3rem;color:var(--g9);font-weight:900;display:flex;align-items:center;gap:10px}
+  .num{background:var(--g7);color:#fff;border-radius:50%;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+  .lead{color:var(--sub);margin:0 0 14px}
+  h3{font-size:1.02rem;margin:18px 0 6px;color:var(--g9)}
+  ol,ul{padding-left:1.4em;margin:6px 0}
+  li{margin:4px 0}
+  code,kbd{font-family:ui-monospace,Menlo,Consolas,monospace;background:#f3f1ea;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;font-family:inherit;font-weight:900;font-size:.95rem;border-radius:999px;padding:10px 20px;transition:background .15s, transform .1s}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:var(--g7);color:#fff}
+  .btn.primary:hover{background:var(--g9)}
+  .btn.ghost{background:var(--g1);color:var(--g9);border:2px solid #b7e4c7}
+  .btn.ghost:hover{background:#d8f0e0}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+  .status{font-size:.88rem;color:var(--muted);font-weight:700}
+  .promptbox{border:2px solid var(--line);border-radius:12px;overflow:hidden;margin:10px 0}
+  .promptbar{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#f3f1ea;padding:8px 12px;border-bottom:2px solid var(--line);flex-wrap:wrap}
+  .promptbar strong{color:var(--g9);font-size:.95rem}
+  pre{margin:0;padding:14px 16px;white-space:pre-wrap;word-break:break-word;font-family:'Noto Sans TC',ui-monospace,monospace;font-size:.88rem;line-height:1.65;max-height:320px;overflow:auto;background:#fff}
+  details.more summary{cursor:pointer;color:var(--g7);font-weight:700;font-size:.9rem;padding:6px 0}
+  .note{background:var(--amber-bg);border:2px solid var(--amber-line);border-radius:12px;padding:12px 16px;color:var(--amber);font-size:.95rem;margin:12px 0}
+  .note strong{color:#78350f}
+  .ok{background:var(--g1);border:2px solid #b7e4c7;border-radius:12px;padding:12px 16px;color:var(--g9);font-size:.95rem;margin:12px 0}
+  .demo{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;background:var(--g1);border:2px solid #b7e4c7;border-radius:12px;padding:14px 18px}
+  .demo a.link{color:var(--g9);font-weight:900;word-break:break-all}
+  table{width:100%;border-collapse:collapse;font-size:.93rem;margin-top:8px}
+  th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+  th{background:var(--g9);color:#fff;font-weight:700}
+  tr:nth-child(even) td{background:#faf8f3}
+  .check td:first-child{width:38px;text-align:center}
+  .check input{width:20px;height:20px;accent-color:var(--g7)}
+  .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0 4px}
+  .flow div{background:#fcfbf8;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+  .flow b{display:block;color:var(--g7);font-size:.95rem}
+  .faq dt{font-weight:900;color:var(--g9);margin-top:14px}
+  .faq dd{margin:4px 0 0;color:var(--sub)}
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:10px 20px 40px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,80px);background:#1f2937;color:#fff;padding:10px 22px;border-radius:999px;font-weight:700;opacity:0;transition:all .25s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:600px){section{padding:18px 16px} h1{font-size:1.5rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>🌱 定期評量 AI 陪伴訂正｜教師分享包</h1>
+    <p>考完試後，學生對照紙本考卷，在 AI 教練的蘇格拉底式提問下自己想通錯題的概念。不用寫程式、不用 API key：<strong>複製樣板 → 上傳考卷 → 核對答案</strong>，就能做出自己班級的版本。</p>
+    <div class="tags"><span>國小自然</span><span>Gemini Canvas</span><span>免 API key</span><span>只用座號、不收姓名</span></div>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap">
+  <a href="#demo">先看示範</a><a href="#step1">① 複製樣板</a><a href="#step2">② 上傳考卷</a><a href="#step3">③ 測試與分享</a><a href="#help">卡關了怎麼辦</a><a href="#faq">常見問題</a>
+</div></nav>
+
+<main><div class="wrap">
+
+  <section id="demo">
+    <h2>👀 先看示範</h2>
+    <p class="lead">這是三下自然（動物的身體與運動、天氣的變化）的示範版。請用電腦或平板的<strong>瀏覽器</strong>開啟，並登入 Google 帳號。</p>
+    <div class="demo">
+      <a class="link" href="https://gemini.google.com/share/a14a60db467f">https://gemini.google.com/share/a14a60db467f</a>
+      <button class="btn ghost" data-copy-text="https://gemini.google.com/share/a14a60db467f">📋 複製連結</button>
+    </div>
+    <h3>學生使用時會經過四個階段</h3>
+    <div class="flow">
+      <div><b>① 說原本想法</b>我原本選什麼、為什麼</div>
+      <div><b>② 一起想一想</b>AI 一次問一個問題，不直接給答案</div>
+      <div><b>③ 說出為什麼</b>用自己的話解釋，才解鎖正解</div>
+      <div><b>④ 類題挑戰</b>老師核對過的類似題</div>
+    </div>
+    <p class="lead" style="margin-top:10px">卡住時可以按「給我一點提示」，一次只多給一級。最後會產生<strong>訂正學習卡</strong>，可以列印或截圖交給老師。</p>
+  </section>
+
+  <section>
+    <h2>🧭 做一份自己的：只要三步</h2>
+    <p class="lead">準備好考卷檔案（PDF 或清楚的照片）和 Google 帳號，用<strong>電腦</strong>操作最順，大約 20～30 分鐘。</p>
+    <div class="flow">
+      <div><b>① 複製樣板</b>點連結，按「複製」，App 就到你的 Gemini 裡了</div>
+      <div><b>② 上傳考卷</b>貼上一段提示詞，核對 AI 列出的答案</div>
+      <div><b>③ 測試與分享</b>看到綠燈就可以分享給學生</div>
+    </div>
+  </section>
+
+  <section id="step1">
+    <h2><span class="num">1</span>複製 App 樣板到你的 Gemini</h2>
+    <div class="row">
+      <a class="btn primary" id="tplLinkBtn" href="#" target="_blank" rel="noopener">🚀 開啟 App 樣板</a>
+      <span class="status" id="tplLinkStatus"></span>
+    </div>
+    <ol>
+      <li>按上面的按鈕，用瀏覽器開啟樣板，並登入你的 Google 帳號。</li>
+      <li>按畫面<strong>右下角</strong>的「<strong>試用 Gemini Canvas</strong>」（英文介面是 <em>Try Gemini Canvas</em>），就會在你的 Gemini 打開一份副本。</li>
+      <li>複製完成後，會看到 App 畫面，上方有「程式碼／預覽」，下方有「<strong>問問 Gemini</strong>」輸入框。這就是你自己的副本，步驟 2 就在這個輸入框操作。</li>
+    </ol>
+    <div class="ok">✅ 複製出來的 App 是你自己的，怎麼改都不會影響原本的樣板。</div>
+  </section>
+
+  <section id="step2">
+    <h2><span class="num">2</span>上傳考卷，貼上提示詞，核對答案</h2>
+    <ol>
+      <li>在剛剛複製出來的對話框，按「＋」上傳考卷（有解答卷更好，可以一起上傳）。</li>
+      <li>按下面的按鈕複製提示詞，貼到對話框送出。</li>
+    </ol>
+    <div class="promptbox">
+      <div class="promptbar"><strong>一鍵提示詞</strong><button class="btn primary" data-copy="pmain">📋 複製提示詞</button></div>
+      <pre id="pmain">我上傳了本次定期評量考卷。這個 Canvas 是「定期評量 AI 陪伴訂正」App，請幫我換成這份考卷的版本。請分兩個階段進行：
+
+【階段一：先列出核對表，這個階段不要修改 Canvas】
+1. 若考卷沒有附解答，請先嚴謹解題。
+2. 用表格列出每一題：大題｜題號｜正解｜本題評量概念（一句話）｜我要出的類似題正解｜⚠需要老師確認的原因（沒有就空白）
+   正解符號一律使用：是非題 ○ 或 ╳；選擇題 ① ② ③ ④；勾選題 V 或 X；代號題 ㄅ ㄆ ㄇ ㄈ。有小題的寫成「第 2-(1) 題」。看圖題看不清楚就標 ⚠。
+3. 表格後面問我：「請核對正解，有錯請直接告訴我；沒問題請回覆『確認』。」然後停下來等我回覆。
+
+【階段二：我回覆「確認」之後，才更新 Canvas】
+只修改程式中的兩個地方，其他程式碼一個字都不要改：
+(1) CONFIG：依考卷填入 appTitle、badge、gradeText、cardTitle；storageId 改成新的英文代號（例如 g4_sci_exam1）。
+(2) QUESTIONS：把「▼▼▼▼▼ 題庫開始」和「▲▲▲▲▲ 題庫結束」之間的範例題，換成這份考卷的全部題目（照核對後的正解）。
+每一題的欄位名稱和格式完全照範例題：id、category、title、unit、answer、concept、misconceptions、keywords、imageGuide、conceptHint、hints、transfer（question、options、answer、reason）、explanation。
+內容要求：
+- answer 只能是單一符號：○ ╳ ① ② ③ ④ V X ㄅ ㄆ ㄇ ㄈ。
+- misconceptions：逐一說明選各個錯誤選項的學生，可能有什麼迷思或錯誤推理。
+- imageGuide：有圖的題目寫「請看紙本考卷第 X 題的圖，注意……」並指出要觀察的線索；沒有圖就寫空字串。
+- hints：3 個由淺入深的問句（喚起經驗 → 聚焦證據 → 接近結論）；hints 和 conceptHint 都用國小學生聽得懂的話，絕對不能說出答案或選項代號。
+- transfer：概念相同、情境不同的類似題，4 個選項用 ① ② ③ ④ 開頭，只有一個正確答案。
+- 文字裡不要用英文雙引號，需要引號時用「」。
+- 不要省略任何一題。</pre>
+    </div>
+    <ol start="3">
+      <li>Gemini 會先在<strong>對話框</strong>裡列出一張<strong>核對表</strong>，這時右邊的 App <strong>還不會改變</strong>，這是正常的。請拿解答逐題對照，特別注意標 ⚠ 的題目。</li>
+      <li>有錯就直接打字告訴它，例如：<code>第 3 題正解是 ②，不是 ③</code>。</li>
+      <li>全部正確後，回覆 <code>確認</code>，Gemini 就會更新右邊的 App。</li>
+    </ol>
+    <div class="note"><strong>⚠ 核對這一步不能省：</strong>AI 讀考卷，特別是圖片題，有可能判斷錯。題目很多時，Gemini 可能會分次更新，看到它停下來就回覆「繼續」。</div>
+  </section>
+
+  <section id="step3">
+    <h2><span class="num">3</span>測試，然後分享給學生</h2>
+    <p class="lead">先看 App 頂部的狀態標籤：送出第一則訊息後，<strong>🟢 AI 教練連線中</strong>才代表 AI 有在回答；<strong>🟠 離線備援模式</strong>代表 AI 沒連上。</p>
+    <table class="check">
+      <tr><th>✓</th><th>扮演學生試試看</th><th>正常的反應</th></tr>
+      <tr><td><input type="checkbox"></td><td>題號按鈕和題目數量是不是對的</td><td>跟考卷一樣</td></tr>
+      <tr><td><input type="checkbox"></td><td>送出一則訊息，看頂部標籤</td><td>🟢 綠燈</td></tr>
+      <tr><td><input type="checkbox"></td><td>打「直接告訴我答案」</td><td>AI 不說答案，改問更簡單的問題</td></tr>
+      <tr><td><input type="checkbox"></td><td>答對了，但沒說為什麼</td><td>AI 會請你說出理由，才解鎖正解</td></tr>
+    </table>
+    <h3>分享給學生</h3>
+    <ol>
+      <li>在 App 上方按「<strong>分享</strong>」→ 建立公開連結 →「複製」。</li>
+      <li>貼到 Google Classroom，或做成 QR Code 投影，學生用平板掃描進入。</li>
+    </ol>
+    <div class="note"><strong>⚠ 連結是公開的：</strong>拿到網址的人都看得到 App，答案也在程式裡。考卷之後還要再用的話，請不要公開散布。</div>
+  </section>
+
+  <section id="help">
+    <h2>🛟 卡關了怎麼辦</h2>
+    <dl class="faq">
+      <dt>App 變成一片空白，或出現錯誤訊息</dt>
+      <dd>在對話框輸入：<code>App 出現錯誤，請只修正錯誤，不要改其他程式</code>。如果還是不行，按 Canvas 右上角的「程式碼」→「顯示最近變更」，可以還原到前一版。</dd>
+      <dt>頂部一直是 🟠 橘燈</dt>
+      <dd>代表 AI 沒連上，可能是 Gemini 在更新時改壞了連線的程式。最快的方法是回到步驟 1 重新複製一份樣板再做一次；或改用下方的手動方式。</dd>
+      <dt>Gemini 只換了幾題，或把題目改得跟考卷不一樣</dt>
+      <dd>直接告訴它：<code>題庫只有 10 題，請補上第 11 題到最後一題</code>，或 <code>第 5 題的題目內容和考卷不一致，請依考卷修正</code>。</dd>
+    </dl>
+    <details class="more">
+      <summary>進階：手動方式（Gemini 一直改壞時使用）</summary>
+      <p style="margin:10px 0 6px">這個方法不讓 Gemini 改程式，由你自己把題庫貼進程式碼。步驟較多，但結果最穩定。</p>
+      <ol>
+        <li>開一個一般 Gemini 對話，上傳考卷，貼上「提示詞 A」產生題庫，並逐題核對。</li>
+        <li>在同一個對話貼上「提示詞 B」，得到以 <code>const QUESTIONS = [</code> 開頭的程式碼，複製起來。</li>
+        <li>到你複製的樣板，按右上角「程式碼」，按 <kbd>Ctrl</kbd>+<kbd>F</kbd> 搜尋 <code>題庫開始</code>。</li>
+        <li>從下一行 <code>const QUESTIONS = [</code> 選到 <code>題庫結束</code> 上一行的 <code>];</code>，貼上取代。</li>
+        <li>上方 <code>CONFIG</code> 裡引號中的標題、年級文字也改成你的；<code>storageId</code> 換一個新的英文名稱。</li>
+      </ol>
+      <div class="promptbox">
+        <div class="promptbar"><strong>提示詞 A｜建立題庫</strong><button class="btn ghost" data-copy="p1">📋 複製</button></div>
+        <pre id="p1">你是一位熟悉臺灣國小自然科學課程（108課綱）的命題與學習診斷專家。
+我已上傳本次定期評量考卷（若未附解答，請先嚴謹解題，並在該題標註「⚠答案請老師確認」）。
+
+請為每一道題目建立「自主訂正引導資料庫」。學生會一邊看手上的紙本考卷，一邊用平板上的 App 思考，所以引導內容要能讓學生回頭對照紙本。
+
+【每一題依序輸出以下欄位】
+1. 【大題・題號・正解・單元】例：一、是非題｜第 3 題｜正解：╳｜三下 天氣的變化
+   正解符號一律使用：是非題 ○ 或 ╳；選擇題 ① ② ③ ④；勾選題 V 或 X；代號題 ㄅ ㄆ ㄇ ㄈ。
+   有小題的寫成「第 2-(1) 題」。看圖題請依考卷的圖判斷出確定的答案，看不清楚就標註「⚠答案請老師確認」，不要寫「依紙本確認」。
+2. 【評量概念】用一句話寫出本題要評量的核心概念。
+3. 【錯誤選項診斷】逐一列出每個錯誤選項，說明選這個選項的學生可能有什麼迷思概念或錯誤推理。
+   例：選①→ 可能認為「糖溶解後就消失了，所以重量變輕」。
+4. 【第一步・審題指引】
+   - 審題關鍵字 1～2 個。
+   - 若題目有實驗裝置圖、數據表、圖表、照片或長文，請加上【看圖指引】：「請看紙本考卷第 X 題的圖，注意……」，具體指出要觀察的線索（例如刻度、變因、前後變化、對照組）。
+5. 【第二步・概念提示】寫出解題需要的自然科概念或實驗原理，用國小學生看得懂的話，不能透露答案。
+6. 【第三步・提示階梯】
+   - 提示1（喚起經驗）：連結課堂實驗或生活經驗的問句。
+   - 提示2（聚焦證據）：引導學生注意關鍵變因或證據的問句。
+   - 提示3（接近結論）：幾乎點到答案，但仍要學生自己說出結論的問句。
+   三個都必須是問句，不能說出答案或選項代號。
+7. 【遷移檢核題】出 1 題概念相同、情境不同的選擇題（4 個選項，用 ① ② ③ ④ 開頭），附上正解與一句理由。題目要嚴謹、只有一個正確答案。
+8. 【正解理由】用 2～3 句說明為什麼答案是這個。
+
+【最後附上】
+【教師核對清單】列出你不確定的題目（例如圖看不清楚、答案有爭議、題意可能有多種解讀）。
+
+【輸出格式限制】
+- 全部內容放在「單一個 Markdown 程式碼區塊」裡，中間不可中斷。
+- 使用繁體中文、臺灣用語。</pre>
+      </div>
+      <div class="promptbox">
+        <div class="promptbar"><strong>提示詞 B｜轉成程式題庫</strong><button class="btn ghost" data-copy="p2">📋 複製</button></div>
+        <pre id="p2">請把上面已經核對過的題庫，轉成網頁程式使用的 JavaScript 陣列。
+
+【輸出規則】
+- 只輸出一個程式碼區塊。第一行是 const QUESTIONS = [ ，最後一行是 ];
+- 每一題一個物件，欄位名稱與格式完全照下面範例，不可增加或減少欄位：
+
+  {
+    id: "TF1",
+    category: "一、是非題",
+    title: "一、是非題 第 1 題",
+    unit: "三下 動物的身體與運動",
+    answer: "╳",
+    concept: "（評量概念）",
+    misconceptions: "（錯誤選項診斷，各選項接在同一段文字裡）",
+    keywords: "（審題關鍵字）",
+    imageGuide: "（看圖指引；沒有圖就留空，寫成 imageGuide: "" ）",
+    conceptHint: "（概念提示）",
+    hints: ["（提示1）", "（提示2）", "（提示3）"],
+    transfer: {
+      question: "（遷移檢核題題目）",
+      options: ["①…", "②…", "③…", "④…"],
+      answer: "②",
+      reason: "（類題理由）"
+    },
+    explanation: "（正解理由）"
+  },
+
+- id 用英文加數字且不可重複，例如是非題 TF1、TF2，選擇題 MC1，看圖題 PIC1_1，回答問題 ANS1_1，勾選題 CHK1_1。
+- 同一大題的 category 文字要完全相同（App 會用它自動產生分類按鈕）。
+- answer 只能是單一符號：○ ╳ ① ② ③ ④ V X ㄅ ㄆ ㄇ ㄈ 其中之一。
+- 文字內容裡不要出現英文雙引號 "，需要引號時一律用「」。
+- 內容照題庫原文，不要改寫，也不要省略任何一題。
+- 如果一次輸出不完，請停在某一題的結尾，等我說「繼續」再從下一題接著輸出，最後一段結尾才寫 ];</pre>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="copyTemplate" disabled>📋 複製空白樣板程式碼</button>
+        <button class="btn ghost" id="saveTemplate" disabled>⬇️ 下載樣板檔</button>
+        <span class="status" id="tplStatus">樣板載入中…</span>
+      </div>
+      <p class="status">如果找不到樣板連結，也可以自己開一個 Canvas，在「程式碼」畫面全選刪除後，貼上這份空白樣板。</p>
+    </details>
+  </section>
+
+  <section id="faq">
+    <h2>❓ 常見問題</h2>
+    <dl class="faq">
+      <dt>真的不需要 API key 嗎？</dt>
+      <dd>不需要。Canvas 會自動處理 AI 連線。開啟 App 的人要登入自己的 Google 帳號，AI 使用量算在登入者的帳號上。</dd>
+      <dt>國小學生可以用嗎？</dt>
+      <dd>依 Google 目前的說明，在 Canvas App 中使用 AI 功能有年齡限制，學校教育帳號能不能用也要看各校管理員的設定。<strong>請先用一個學生帳號實測。</strong>如果學生不能用，可以改成老師登入、投影帶全班一起檢討。</dd>
+      <dt>可以用 Gemini 手機 App 開嗎？</dt>
+      <dd>分享的連結只能用瀏覽器開啟（Chrome、Safari 都可以），不能用 Gemini 手機 App 開。</dd>
+      <dt>學生的訂正紀錄存在哪裡？</dt>
+      <dd>紀錄只存在學生自己的平板瀏覽器裡，不會上傳，老師的帳號看不到。請學生在學習卡按「列印」、截圖或「複製文字紀錄」交給老師。</dd>
+      <dt>學生會不會偷看答案？</dt>
+      <dd>畫面上的正解要等學生說出理由後才會出現；但答案寫在程式裡，會查看網頁原始碼的人還是找得到。對國小學生影響不大，老師心裡有數即可。</dd>
+      <dt>其他科目可以用嗎？</dt>
+      <dd>可以。把提示詞裡的「國小自然」換成你的科目即可，AI 的對話規則是通用的。數學算式較多的題目，顯示效果會比較陽春。</dd>
+    </dl>
+  </section>
+
+</div></main>
+
+<footer>本分享包提供研習教師參考使用。題庫內容由 AI 協助產生，使用前請務必由教師核對。</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+  // ★ 樣板的 Gemini 分享連結：建立後填在這裡
+  const TEMPLATE_LINK = "https://share.gemini.google/fy9Q4le0Z7Q2";
+
+  const toastEl = document.getElementById('toast');
+  let toastT;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => toastEl.classList.remove('show'), 2400);
+  }
+
+  async function copyText(text, okMsg){
+    try{
+      await navigator.clipboard.writeText(text);
+      toast(okMsg || '✅ 已複製');
+    }catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false;
+      try{ ok = document.execCommand('copy'); }catch(_){}
+      document.body.removeChild(ta);
+      toast(ok ? (okMsg || '✅ 已複製') : '⚠ 無法自動複製，請手動選取文字複製');
+    }
+  }
+
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      copyText(document.getElementById(btn.dataset.copy).textContent, '✅ 已複製提示詞，到 Gemini 貼上吧！');
+    });
+  });
+  document.querySelectorAll('[data-copy-text]').forEach(btn => {
+    btn.addEventListener('click', () => copyText(btn.dataset.copyText, '✅ 已複製連結'));
+  });
+
+  // 樣板連結
+  const tplLinkBtn = document.getElementById('tplLinkBtn');
+  const tplLinkStatus = document.getElementById('tplLinkStatus');
+  if (TEMPLATE_LINK) {
+    tplLinkBtn.href = TEMPLATE_LINK;
+    tplLinkStatus.textContent = TEMPLATE_LINK;
+  } else {
+    tplLinkBtn.removeAttribute('href');
+    tplLinkBtn.style.opacity = '.5';
+    tplLinkBtn.style.cursor = 'not-allowed';
+    tplLinkStatus.textContent = '樣板連結準備中，請向研習講師索取';
+  }
+
+  // 手動方式：載入空白樣板
+  let templateText = '';
+  const tplStatus = document.getElementById('tplStatus');
+  const copyBtn = document.getElementById('copyTemplate');
+  const saveBtn = document.getElementById('saveTemplate');
+  fetch('template.html')
+    .then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
+    .then(t => { templateText = t; copyBtn.disabled = false; tplStatus.textContent = '樣板已就緒'; refreshSave(); })
+    .catch(() => { tplStatus.textContent = '⚠ 樣板載入失敗，請重新整理頁面'; });
+  copyBtn.addEventListener('click', () => {
+    if (templateText) copyText(templateText, '✅ 已複製樣板，到 Canvas 的「程式碼」畫面貼上');
+  });
+
+  // 一般網頁：直接用瀏覽器下載
+  function refreshSave(){ saveBtn.disabled = !templateText; }
+  saveBtn.addEventListener('click', () => {
+    if (!templateText) return;
+    try{
+      const blob = new Blob([templateText], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'template.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast('✅ 已下載樣板檔');
+    }catch(e){
+      toast('⚠ 無法下載，請改用「複製空白樣板程式碼」');
+    }
+  });
+</script>
+</body>
+</html>

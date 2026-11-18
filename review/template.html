@@ -1,0 +1,2578 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>國小自然｜定期評量 AI 陪伴訂正</title>
+  <!-- 引入繁體中文易讀字型 Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =========================================================
+       設計變數：自然森林綠 × 溫暖米白（專為國小平板護眼設計）
+       ========================================================= */
+    :root {
+      --bg-cream: #f7f4ec;
+      --bg-card: #ffffff;
+      --bg-soft-green: #ebf7ef;
+      --bg-soft-amber: #fef8e7;
+      --bg-soft-blue: #eef6fb;
+
+      --green-dark: #1b4332;
+      --green-primary: #2d6a4f;
+      --green-medium: #40916c;
+      --green-light: #b7e4c7;
+
+      --amber-dark: #92400e;
+      --amber-primary: #d97706;
+      --amber-border: #fcd34d;
+
+      --text-main: #1f2937;
+      --text-sub: #4b5563;
+      --text-muted: #6b7280;
+
+      --border-warm: #e5dfd1;
+      --shadow-sm: 0 2px 8px rgba(27, 67, 50, 0.06);
+      --shadow-md: 0 6px 20px rgba(27, 67, 50, 0.09);
+      --shadow-lg: 0 12px 32px rgba(27, 67, 50, 0.16);
+
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 24px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", sans-serif;
+      font-size: 19px;
+      line-height: 1.65;
+      color: var(--text-main);
+      background-color: var(--bg-cream);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      transition: transform 0.12s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    button:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* =========================================================
+       上方導覽列（Top Bar）
+       ========================================================= */
+    .top-bar {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-primary) 100%);
+      color: #ffffff;
+      padding: 12px 20px;
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .top-bar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.22rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-badge {
+      background: rgba(255, 255, 255, 0.18);
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .top-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .seat-box {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      border-radius: var(--radius-pill);
+      padding: 4px 12px;
+      gap: 8px;
+    }
+
+    .seat-box label {
+      font-weight: 700;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    .seat-input {
+      width: 68px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      border: 2px solid #ffffff;
+      background: #ffffff;
+      color: var(--green-dark);
+      font-weight: 900;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .seat-save-btn {
+      background: #fde68a;
+      color: #78350f;
+      font-weight: 900;
+      font-size: 0.9rem;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+    }
+
+    .seat-save-btn:hover {
+      background: #fcd34d;
+    }
+
+    .card-btn {
+      background: #ffffff;
+      color: var(--green-dark);
+      font-weight: 900;
+      padding: 9px 18px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+      font-size: 0.98rem;
+    }
+
+    .card-btn:hover {
+      background: var(--bg-soft-green);
+    }
+
+    .progress-pill {
+      background: var(--green-primary);
+      color: #ffffff;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.88rem;
+    }
+
+    /* =========================================================
+       題號導覽與篩選區
+       ========================================================= */
+    .nav-panel {
+      max-width: 1440px;
+      margin: 12px auto 0;
+      padding: 0 16px;
+    }
+
+    .nav-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border-warm);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .category-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .cat-tab {
+      background: var(--bg-cream);
+      color: var(--text-sub);
+      border: 2px solid var(--border-warm);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .cat-tab.active {
+      background: var(--green-primary);
+      color: #ffffff;
+      border-color: var(--green-primary);
+    }
+
+    .nav-toggle-btn {
+      margin-left: auto;
+      background: transparent;
+      color: var(--green-primary);
+      font-size: 0.88rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .question-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 156px;
+      overflow-y: auto;
+      padding: 2px;
+    }
+
+    .question-grid.collapsed {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      max-height: none;
+      padding-bottom: 6px;
+    }
+
+    .q-btn {
+      min-height: 44px;
+      padding: 6px 13px;
+      border-radius: var(--radius-sm);
+      background: #f9fafb;
+      border: 2px solid #d1d5db;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .q-btn:hover {
+      border-color: var(--green-medium);
+      background: var(--bg-soft-green);
+    }
+
+    .q-btn.completed {
+      background: #dcfce7;
+      border-color: #22c55e;
+      color: #14532d;
+    }
+
+    .q-btn.needs-teacher {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      color: #78350f;
+    }
+
+    .q-btn.active {
+      background: var(--green-dark) !important;
+      border-color: var(--green-dark) !important;
+      color: #ffffff !important;
+      box-shadow: 0 3px 10px rgba(27, 67, 50, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* =========================================================
+       主工作區（雙欄：左側 40% 思考導航卡 ＋ 右側 60% AI 教練對話框）
+       ========================================================= */
+    .workspace {
+      max-width: 1440px;
+      margin: 14px auto 24px;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 4fr 6fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    /* 左側：思考導航卡 */
+    .guide-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border-warm);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .q-header {
+      border-bottom: 2px dashed var(--border-warm);
+      padding-bottom: 14px;
+    }
+
+    .unit-tag {
+      display: inline-block;
+      background: var(--bg-soft-green);
+      color: var(--green-primary);
+      font-weight: 800;
+      font-size: 0.88rem;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 6px;
+    }
+
+    .q-title {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--green-dark);
+    }
+
+    .paper-remind {
+      margin: 6px 0 0;
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 正解鎖定區 */
+    .answer-lock-box {
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      border: 2px solid #d1d5db;
+      background: #f3f4f6;
+      transition: all 0.25s ease;
+    }
+
+    .answer-lock-box.unlocked {
+      border-color: #34d399;
+      background: var(--bg-soft-green);
+    }
+
+    .lock-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      color: var(--text-sub);
+      font-size: 0.96rem;
+    }
+
+    .answer-reveal-content {
+      margin-top: 8px;
+    }
+
+    .answer-badge-big {
+      display: inline-block;
+      background: var(--green-primary);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 1.1rem;
+      padding: 4px 16px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 8px;
+    }
+
+    .answer-reason-text {
+      margin: 0;
+      font-size: 0.96rem;
+      color: var(--green-dark);
+      font-weight: 500;
+    }
+
+    /* 步驟卡片區塊 */
+    .step-section {
+      background: #fcfbf8;
+      border: 2px solid var(--border-warm);
+      border-radius: var(--radius-md);
+      padding: 15px 16px;
+    }
+
+    .step-label {
+      font-weight: 900;
+      font-size: 1.02rem;
+      color: var(--green-dark);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .keywords-box {
+      background: #ffffff;
+      border: 2px solid var(--green-light);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-weight: 800;
+      color: var(--green-primary);
+      font-size: 1rem;
+    }
+
+    .image-guide-card {
+      margin-top: 12px;
+      background: var(--bg-soft-amber);
+      border: 2px solid var(--amber-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--amber-dark);
+      font-size: 0.95rem;
+    }
+
+    .image-guide-title {
+      font-weight: 900;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 第二步概念提示按鈕與內容 */
+    .concept-toggle-btn {
+      width: 100%;
+      min-height: 52px;
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      color: #92400e;
+      font-weight: 900;
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 1rem;
+    }
+
+    .concept-toggle-btn:hover {
+      background: #fde68a;
+    }
+
+    .concept-body {
+      margin-top: 10px;
+      background: #ffffff;
+      border: 2px solid #fde68a;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 0.96rem;
+      color: var(--text-main);
+    }
+
+    /* 底部狀態儀表板 */
+    .status-dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: var(--bg-cream);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      border: 2px solid var(--border-warm);
+      text-align: center;
+    }
+
+    .stat-item-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .stat-item-val {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: var(--green-dark);
+      margin-top: 2px;
+    }
+
+    /* =========================================================
+       右側：AI 教練對話框
+       ========================================================= */
+    .chat-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border-warm);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 210px);
+      min-height: 560px;
+      max-height: 820px;
+      overflow: hidden;
+    }
+
+    /* 頂部四階段進度條 */
+    .stage-stepper {
+      background: var(--bg-soft-green);
+      border-bottom: 2px solid var(--green-light);
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .stage-pill {
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.7);
+      border: 1.5px solid transparent;
+    }
+
+    .stage-pill.active {
+      background: var(--green-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(45, 106, 79, 0.25);
+    }
+
+    .stage-pill.done {
+      background: #d1fae5;
+      color: #065f46;
+      border-color: #6ee7b7;
+    }
+
+    /* 對話紀錄區 */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: #fdfcfa;
+    }
+
+    .msg-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      max-width: 88%;
+      animation: fadeSlideUp 0.22s ease;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-row.ai {
+      align-self: flex-start;
+    }
+
+    .msg-row.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      flex-shrink: 0;
+      font-size: 1.25rem;
+    }
+
+    .avatar.ai {
+      background: var(--green-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(45, 106, 79, 0.25);
+    }
+
+    .avatar.user {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 2px solid #7dd3fc;
+      font-size: 0.85rem;
+    }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 20px;
+      font-size: 1rem;
+      line-height: 1.6;
+      word-break: break-word;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .msg-row.ai .bubble {
+      background: #ffffff;
+      border: 2px solid var(--border-warm);
+      border-top-left-radius: 4px;
+      color: var(--text-main);
+    }
+
+    .msg-row.user .bubble {
+      background: var(--green-primary);
+      color: #ffffff;
+      border-top-right-radius: 4px;
+    }
+
+    .msg-tag {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 900;
+      padding: 2px 9px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 5px;
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    /* 階段四：遷移檢核類題互動卡片 */
+    .transfer-panel {
+      background: var(--bg-soft-blue);
+      border-top: 2px solid #bae6fd;
+      padding: 14px 18px;
+    }
+
+    .transfer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .transfer-badge {
+      background: #0284c7;
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 0.85rem;
+      padding: 3px 12px;
+      border-radius: var(--radius-pill);
+    }
+
+    .skip-transfer-btn {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: underline;
+      padding: 4px 8px;
+    }
+
+    .transfer-q-text {
+      font-weight: 800;
+      color: #0c4a6e;
+      margin: 0 0 10px;
+      font-size: 0.98rem;
+    }
+
+    .transfer-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .transfer-opt-btn {
+      min-height: 48px;
+      background: #ffffff;
+      border: 2px solid #7dd3fc;
+      color: #0c4a6e;
+      font-weight: 800;
+      font-size: 0.94rem;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .transfer-opt-btn:hover {
+      background: #e0f2fe;
+      border-color: #0284c7;
+    }
+
+    /* 完成橫幅 */
+    .complete-banner {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      color: #ffffff;
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 900;
+    }
+
+    .next-q-btn {
+      background: #ffffff;
+      color: #15803d;
+      font-weight: 900;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 0.95rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 底部工具與輸入列 */
+    .chat-footer {
+      border-top: 2px solid var(--border-warm);
+      background: #ffffff;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hint-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .hint-btn {
+      min-height: 46px;
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      color: #92400e;
+      font-weight: 900;
+      font-size: 0.94rem;
+      padding: 6px 16px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hint-btn:hover:not(:disabled) {
+      background: #fde68a;
+    }
+
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip-btn {
+      min-height: 40px;
+      background: var(--bg-cream);
+      border: 1.5px solid var(--border-warm);
+      color: var(--text-sub);
+      font-weight: 700;
+      font-size: 0.86rem;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+    }
+
+    .chip-btn:hover {
+      background: var(--bg-soft-green);
+      border-color: var(--green-medium);
+      color: var(--green-dark);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .chat-input {
+      flex: 1;
+      min-height: 52px;
+      padding: 10px 16px;
+      border-radius: var(--radius-pill);
+      border: 2px solid #cbd5e1;
+      background: #f8fafc;
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .chat-input:focus {
+      border-color: var(--green-primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.14);
+    }
+
+    .send-btn {
+      min-height: 52px;
+      min-width: 112px;
+      background: var(--green-primary);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 1rem;
+      border-radius: var(--radius-pill);
+      padding: 0 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .send-btn:hover:not(:disabled) {
+      background: var(--green-dark);
+    }
+
+    /* =========================================================
+       彈窗（座號歡迎窗 / 學習卡總表 / 確認框）
+       ========================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      max-width: 1080px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      border: 3px solid var(--green-light);
+      overflow: hidden;
+    }
+
+    .modal-dialog.small {
+      max-width: 480px;
+    }
+
+    .modal-header {
+      background: var(--green-primary);
+      color: #ffffff;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 900;
+    }
+
+    .close-modal-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 1.2rem;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 14px 22px;
+      background: var(--bg-cream);
+      border-top: 2px solid var(--border-warm);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    /* 學習卡統計與表格 */
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .sum-box {
+      background: var(--bg-soft-green);
+      border: 2px solid var(--green-light);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .sum-box.amber {
+      background: var(--bg-soft-amber);
+      border-color: var(--amber-border);
+    }
+
+    .sum-num {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--green-dark);
+    }
+
+    .sum-box.amber .sum-num {
+      color: var(--amber-dark);
+    }
+
+    .sum-lbl {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .report-table-wrap {
+      overflow-x: auto;
+      border: 2px solid var(--border-warm);
+      border-radius: var(--radius-md);
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .report-table th {
+      background: var(--green-dark);
+      color: #ffffff;
+      padding: 10px 12px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .report-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-warm);
+      vertical-align: top;
+    }
+
+    .report-table tr:nth-child(even) td {
+      background: #faf8f3;
+    }
+
+    .badge-pass {
+      background: #dcfce7;
+      color: #166534;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      font-weight: 800;
+      font-size: 0.82rem;
+      display: inline-block;
+    }
+
+    .badge-help {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      font-weight: 800;
+      font-size: 0.82rem;
+      display: inline-block;
+    }
+
+    .badge-none {
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+
+    /* 訊息 Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1f2937;
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: var(--radius-pill);
+      font-weight: 800;
+      font-size: 0.95rem;
+      z-index: 200;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* 載入動畫點點 */
+    .typing-dots span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green-primary);
+      margin: 0 2px;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* =========================================================
+       RWD 平板直向與手機自適應
+       ========================================================= */
+    @media (max-width: 960px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+      .chat-card {
+        height: 620px;
+        max-height: none;
+      }
+      .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      html, body {
+        font-size: 17px;
+      }
+      .transfer-options {
+        grid-template-columns: 1fr;
+      }
+      .app-brand {
+        font-size: 1.08rem;
+      }
+    }
+
+    /* =========================================================
+       列印專用樣式（@media print：只印乾淨美觀的學習卡）
+       ========================================================= */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #learningCardModal,
+      #learningCardModal * {
+        visibility: visible;
+      }
+      #learningCardModal {
+        position: static !important;
+        display: block !important;
+        background: none !important;
+        padding: 0 !important;
+      }
+      #learningCardModal .modal-dialog {
+        max-width: 100% !important;
+        max-height: none !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+      #learningCardModal .modal-body {
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .report-table th {
+        background: #2d6a4f !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .sum-box {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. 上方導覽列 -->
+  <header class="top-bar no-print">
+    <div class="top-bar-inner">
+      <div class="app-brand">
+        <span id="appTitleText">🌱 國小自然｜定期評量 AI 陪伴訂正</span>
+        <span id="appBadgeText" class="brand-badge">三下自然</span>
+        <span id="aiModeBadge" class="brand-badge" title="AI 連線狀態">⏳ AI 尚未連線</span>
+      </div>
+
+      <div class="top-controls">
+        <div class="seat-box">
+          <label for="seatInput">座號：</label>
+          <input id="seatInput" class="seat-input" type="number" min="1" max="60" placeholder="1~35" />
+          <span style="font-weight:700;font-size:0.95rem;">號</span>
+          <button id="saveSeatBtn" class="seat-save-btn" type="button">切換/確定</button>
+        </div>
+
+        <button id="openCardBtn" class="card-btn" type="button">
+          <span>📋 我的訂正學習卡</span>
+          <span id="progressPill" class="progress-pill">0 題</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 題號按鈕與分類列 -->
+  <section class="nav-panel no-print">
+    <div class="nav-card">
+      <div class="category-tabs" id="categoryTabs">
+        <button id="toggleNavGridBtn" class="nav-toggle-btn" type="button">收合題號列 ▲</button>
+      </div>
+      <div class="question-grid" id="questionGrid"></div>
+    </div>
+  </section>
+
+  <!-- 2. 主工作區：左側思考導航卡 ＋ 右側 AI 教練對話框 -->
+  <main class="workspace no-print">
+    <!-- 左側：思考導航卡 -->
+    <aside class="guide-card">
+      <div class="q-header">
+        <span id="qUnitTag" class="unit-tag"></span>
+        <h1 id="qTitleText" class="q-title"></h1>
+        <p class="paper-remind">📄 請對照你桌上的紙本考卷題目一起思考喔！</p>
+      </div>
+
+      <!-- 正解區（預設鎖定隱藏） -->
+      <div id="answerLockBox" class="answer-lock-box">
+        <div id="lockPlaceholder" class="lock-status">
+          <span style="font-size:1.3rem;">🔒</span>
+          <span>想通並說出原因後解鎖正解與解析</span>
+        </div>
+        <div id="answerRevealContent" class="answer-reveal-content" style="display:none;">
+          <div>
+            <span class="answer-badge-big">🔓 正解：<span id="revealedAnswerText"></span></span>
+          </div>
+          <p id="revealedReasonText" class="answer-reason-text"></p>
+        </div>
+      </div>
+
+      <!-- 第一步：審題指引 -->
+      <div class="step-section">
+        <div class="step-label">🔍 【第一步・審題指引】</div>
+        <div style="font-size:0.9rem;color:var(--text-sub);margin-bottom:6px;font-weight:700;">找出題目裡的關鍵字：</div>
+        <div id="keywordsBox" class="keywords-box"></div>
+
+        <!-- 看圖指引（有圖題才顯示） -->
+        <div id="imageGuideCard" class="image-guide-card" style="display:none;">
+          <div class="image-guide-title">👀 看圖指引（請看紙本考卷）</div>
+          <div id="imageGuideText"></div>
+        </div>
+      </div>
+
+      <!-- 第二步：概念提示（預設摺疊） -->
+      <div class="step-section">
+        <div class="step-label">🧠 【第二步・概念提示】</div>
+        <button id="toggleConceptBtn" class="concept-toggle-btn" type="button">
+          💡 我需要概念提示
+        </button>
+        <div id="conceptBody" class="concept-body" style="display:none;"></div>
+      </div>
+
+      <!-- 本題學習狀態儀表板 -->
+      <div class="status-dashboard">
+        <div>
+          <div class="stat-item-label">目前階段</div>
+          <div id="dashStage" class="stat-item-val">① 說原本想法</div>
+        </div>
+        <div>
+          <div class="stat-item-label">已用提示</div>
+          <div id="dashHints" class="stat-item-val">0 / 3 級</div>
+        </div>
+        <div>
+          <div class="stat-item-label">對話回合</div>
+          <div id="dashTurns" class="stat-item-val">0 / 8 回合</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右側：AI 教練對話框 -->
+    <section class="chat-card">
+      <!-- 階段進度條 -->
+      <div class="stage-stepper" id="stageStepper">
+        <span class="stage-pill active" data-st="1">① 說原本想法</span>
+        <span class="stage-pill" data-st="2">② 一起想一想</span>
+        <span class="stage-pill" data-st="3">③ 說出為什麼</span>
+        <span class="stage-pill" data-st="4">④ 類題挑戰</span>
+      </div>
+
+      <!-- 對話氣泡區 -->
+      <div class="chat-messages" id="chatMessages"></div>
+
+      <!-- 階段四：遷移檢核類題區（動態顯示） -->
+      <div id="transferPanel" class="transfer-panel" style="display:none;">
+        <div class="transfer-header">
+          <span class="transfer-badge">🎯 階段四｜類似題挑戰</span>
+          <button id="skipTransferBtn" class="skip-transfer-btn" type="button">先跳過挑戰</button>
+        </div>
+        <p id="transferQText" class="transfer-q-text"></p>
+        <div id="transferOptions" class="transfer-options"></div>
+      </div>
+
+      <!-- 完成橫幅 -->
+      <div id="completeBanner" class="complete-banner" style="display:none;">
+        <span>🎉 這題訂正完成！請點上方下一題繼續。</span>
+        <button id="nextQuestionBtn" class="next-q-btn" type="button">前往下一題 ➡️</button>
+      </div>
+
+      <!-- 底部輸入與提示按鈕區 -->
+      <div class="chat-footer">
+        <div class="hint-bar">
+          <button id="requestHintBtn" class="hint-btn" type="button">
+            💡 給我一點提示（下一級：第 1 級）
+          </button>
+          <div id="quickChips" class="quick-chips"></div>
+        </div>
+
+        <form id="chatForm" class="input-row">
+          <input
+            id="chatInput"
+            class="chat-input"
+            type="text"
+            autocomplete="off"
+            placeholder="輸入你原本選的答案和原因..."
+          />
+          <button id="sendBtn" class="send-btn" type="submit">送出 ➤</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- 首次進入輸入座號引導彈窗（絕不收集姓名） -->
+  <div id="welcomeModal" class="modal-backdrop">
+    <div class="modal-dialog small">
+      <div class="modal-header">
+        <h2>🦉 歡迎來到自然 AI 訂正小幫手！</h2>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <p style="font-size:1.05rem;font-weight:700;margin-top:0;">
+          請輸入你的「座號」，系統會自動幫你保存訂正進度喔！<br />
+          <span style="font-size:0.88rem;color:var(--text-muted);font-weight:500;">（保護隱私，只需要座號，不用寫名字）</span>
+        </p>
+        <div style="display:flex;justify-content:center;align-items:center;gap:10px;margin:18px 0;">
+          <input
+            id="welcomeSeatInput"
+            type="number"
+            min="1"
+            max="60"
+            value=""
+            placeholder="?"
+            style="width:110px;height:56px;font-size:1.4rem;font-weight:900;text-align:center;border:3px solid var(--green-primary);border-radius:16px;"
+          />
+          <span style="font-size:1.2rem;font-weight:900;">號</span>
+        </div>
+        <button
+          id="startAppBtn"
+          type="button"
+          style="width:100%;min-height:54px;background:var(--green-primary);color:#fff;font-weight:900;font-size:1.1rem;border-radius:999px;"
+        >
+          開始自主訂正 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 我的訂正學習卡彈窗 -->
+  <div id="learningCardModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 id="learningCardTitle">訂正學習卡</h2>
+        <button id="closeCardModalBtn" class="close-modal-btn no-print" type="button" aria-label="關閉">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="summary-cards">
+          <div class="sum-box">
+            <div id="sumCompleted" class="sum-num">0</div>
+            <div class="sum-lbl">已完成訂正題數</div>
+          </div>
+          <div class="sum-box">
+            <div id="sumUnderstood" class="sum-num">0 題</div>
+            <div class="sum-lbl">自己想通通關</div>
+          </div>
+          <div class="sum-box">
+            <div id="sumTransferPass" class="sum-num">0 題</div>
+            <div class="sum-lbl">類似題挑戰通過</div>
+          </div>
+          <div class="sum-box amber">
+            <div id="sumNeedsTeacher" class="sum-num">0 題</div>
+            <div class="sum-lbl">待老師協助</div>
+          </div>
+        </div>
+
+        <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:0.9rem;color:var(--text-sub);font-weight:700;">📌 學習紀錄總表（可列印或截圖交給老師）</span>
+          <label style="font-size:0.9rem;font-weight:700;color:var(--green-dark);cursor:pointer;">
+            <input type="checkbox" id="filterPracticedOnly" style="width:18px;height:18px;vertical-align:middle;" />
+            只顯示有練習紀錄的題目
+          </label>
+        </div>
+
+        <div class="report-table-wrap">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>題號與單元</th>
+                <th>原本的想法</th>
+                <th>現在的想法</th>
+                <th>用了幾級提示</th>
+                <th>類題是否通過</th>
+                <th>是否需要老師協助</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer no-print">
+        <button
+          id="resetProgressBtn"
+          type="button"
+          style="background:#fee2e2;color:#991b1b;font-weight:800;padding:10px 16px;border-radius:999px;font-size:0.9rem;"
+        >
+          🗑️ 清除本座號紀錄
+        </button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button
+            id="copyReportBtn"
+            type="button"
+            style="background:#e0f2fe;color:#075985;font-weight:900;padding:10px 18px;border-radius:999px;font-size:0.95rem;"
+          >
+            📋 複製文字紀錄
+          </button>
+          <button
+            id="printReportBtn"
+            type="button"
+            style="background:var(--green-primary);color:#ffffff;font-weight:900;padding:10px 20px;border-radius:999px;font-size:0.95rem;"
+          >
+            🖨️ 列印學習卡（可存成 PDF）
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自訂確認對話框（取代 confirm()） -->
+  <div id="confirmResetModal" class="modal-backdrop">
+    <div class="modal-dialog small">
+      <div class="modal-header" style="background:#b91c1c;">
+        <h2>⚠️ 確認清除紀錄？</h2>
+      </div>
+      <div class="modal-body">
+        <p style="margin-top:0;font-weight:700;">
+          確定要清除目前座號的所有訂正紀錄嗎？清除後就無法恢復囉！
+        </p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+          <button id="cancelResetBtn" type="button" style="background:#e5e7eb;color:#374151;font-weight:800;padding:10px 18px;border-radius:999px;">先不要</button>
+          <button id="confirmResetYesBtn" type="button" style="background:#dc2626;color:#ffffff;font-weight:900;padding:10px 18px;border-radius:999px;">確定清除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部提示 Toast -->
+  <div id="toastMsg" class="toast"></div>
+
+  <script>
+    /* =========================================================
+       一、設定與題庫
+       ========================================================= */
+    /* =========================================================
+       ★ 老師只需要修改這一區：CONFIG（基本設定）與 QUESTIONS（題庫）
+       ========================================================= */
+    const CONFIG = {
+      appTitle: "🌱 國小自然｜定期評量 AI 陪伴訂正",   // 網頁標題
+      badge: "三下自然",                               // 標題旁的小標籤
+      gradeText: "國小三年級",                         // AI 說話時要配合的年級
+      cardTitle: "自然科學定期評量訂正學習卡",          // 學習卡標題
+      storageId: "sci_review_demo"                     // 換一份考卷就改一個新名稱（英文、數字、底線），避免和舊紀錄混在一起
+    };
+
+    // ▼▼▼▼▼ 題庫開始：從下一行「const QUESTIONS = [」選到「▲▲▲ 題庫結束」上一行的「];」，整段換成提示詞 2 的結果 ▼▼▼▼▼
+    const QUESTIONS = [
+      {
+        id: "TF1", category: "一、是非題", title: "一、是非題 第 1 題", unit: "三下 動物的身體與運動", answer: "╳",
+        concept: "了解沒有腳的動物依然能透過身體蠕動、爬行或滑行在陸地上活動。",
+        misconceptions: "選「○」→ 可能誤以為「動物一定要有腳才能在陸地上移動」，忽略了蚯蚓、蛇、蝸牛等沒有腳卻生活在陸地上的動物。",
+        keywords: "「沒有腳」、「只能在水中」", imageGuide: "",
+        conceptHint: "有些動物雖然沒有腳，但牠們可以用身體一縮一伸、左右彎曲擺動，或是用寬大扁平的部位貼著地面前進。",
+        hints: [
+          "下雨過後，你在學校花圃或泥土地上見過蚯蚓或蝸牛嗎？",
+          "蚯蚓、蛇和蝸牛有長出像小狗一樣的腳嗎？牠們生活在水裡還是陸地上呢？",
+          "既然蚯蚓和蛇沒有腳卻能待在陸地上移動，那題目說「只能在水中游泳」這句話合理嗎？"
+        ],
+        transfer: {
+          question: "下列哪一種動物沒有腳，但可以在陸地上活動？",
+          options: ["①金魚", "②蚯蚓", "③烏龜", "④麻雀"],
+          answer: "②",
+          reason: "蚯蚓沒有腳，能靠身體一縮一伸在泥土與陸地上蠕動前進。"
+        },
+        explanation: "並非所有沒有腳的動物都只能生活在水裡，例如蚯蚓靠身體蠕動、蛇靠身體彎曲滑行、蝸牛靠腹足爬行，牠們都沒有腳卻都能在陸地上活動，因此本題敘述錯誤（╳）。"
+      },
+      {
+        id: "MC1", category: "二、選擇題", title: "二、選擇題 第 1 題", unit: "三下 天氣的變化", answer: "③",
+        concept: "理解雨量器必須選用「平底直筒容器」，才能準確測出雨水累積的高度。",
+        misconceptions: "選①（上寬下窄）→ 誤以為開口大接比較多雨水才準。選②（上窄下寬）→ 不了解下方變寬會使雨水高度看起來比實際少。選④（每一種都可以）→ 誤以為只要能裝水就能測高度。",
+        keywords: "「適合用來測量雨量」、「容器」", imageGuide: "",
+        conceptHint: "雨量是用雨水累積的「高度（毫米）」來計算，只有上下一樣寬的直筒容器，接到的雨水高度才會準確。",
+        hints: [
+          "自然課製作簡易雨量器時，老師請大家準備什麼形狀的瓶子或杯子？",
+          "如果容器上面開口很大、下面卻很窄（像漏斗），接到的雨水累積起來高度會不會變得特別高、不準確？",
+          "要讓雨水累積的高度剛剛好代表實際雨量，應該選上下寬度一樣的哪一種容器呢？"
+        ],
+        transfer: {
+          question: "下列哪一個日常生活中的容器，裁剪後最適合用來製作簡易雨量器？",
+          options: ["①上寬下窄的陶瓷花瓶", "②上下一樣寬的透明圓柱形寶特瓶", "③開口很小的細頸玻璃瓶", "④底部尖尖的甜筒杯"],
+          answer: "②",
+          reason: "上下一樣寬的圓柱形寶特瓶屬於平底直筒容器，且透明方便觀察刻度。"
+        },
+        explanation: "雨量是以雨水累積的高度計算，唯有上下口徑一致的「平底直筒容器」，收集到的雨水高度才不會因容器形狀而失真，故選③。"
+      }
+    ];
+    // ▲▲▲▲▲ 題庫結束 ▲▲▲▲▲
+
+    /* =========================================================
+       二、應用程式狀態管理（依座號獨立儲存於 localStorage）
+       ========================================================= */
+    const apiKey = ""; // Canvas 環境自動注入金鑰，絕不要求學生輸入
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    let currentSeat = localStorage.getItem(CONFIG.storageId + "_current_seat") || "";
+    let currentCategory = "ALL";
+    let currentQuestionId = QUESTIONS[0].id;
+    let isLoading = false;
+    let studentProgress = {}; // { [questionId]: QuestionRecord }
+
+    // 取得單題預設紀錄物件
+    function createEmptyRecord(q) {
+      return {
+        stage: 1, // 1:說原本想法, 2:蘇格拉底引導, 3:說出為什麼, 4:遷移檢核, 5:完成收尾
+        hintsUsed: 0, // 0..3
+        turns: 0, // 0..8
+        understoodWhy: false, // 是否已通過階段三（解鎖正解）
+        transferResult: "", // "", "通過", "略過"
+        needsTeacher: false, // 超過 8 回合未完成
+        completed: false,
+        studentOriginalSummary: "",
+        studentCurrentSummary: "",
+        messages: [
+          {
+            role: "ai",
+            tag: "階段一｜說出原本的想法",
+            text: `嗨！我們一起來看看【${q.title}】吧！請對照你桌上的紙本考卷，告訴我：你原本選了哪個答案？為什麼這樣選呢？`
+          }
+        ]
+      };
+    }
+
+    function getStorageKey(seat) {
+      return `${CONFIG.storageId}_progress_seat_${seat}`;
+    }
+
+    function loadProgressForSeat(seat) {
+      if (!seat) {
+        studentProgress = {};
+        return;
+      }
+      try {
+        const raw = localStorage.getItem(getStorageKey(seat));
+        studentProgress = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        studentProgress = {};
+      }
+    }
+
+    function saveProgress() {
+      if (!currentSeat) return;
+      try {
+        localStorage.setItem(getStorageKey(currentSeat), JSON.stringify(studentProgress));
+      } catch (e) {
+        // 忽略儲存空間限制錯誤
+      }
+    }
+
+    function getRecord(qId) {
+      const q = QUESTIONS.find(item => item.id === qId);
+      if (!studentProgress[qId]) {
+        studentProgress[qId] = createEmptyRecord(q);
+      }
+      return studentProgress[qId];
+    }
+
+    function getCurrentQuestion() {
+      return QUESTIONS.find(item => item.id === currentQuestionId) || QUESTIONS[0];
+    }
+
+    /* =========================================================
+       三、UI 提示 Toast 工具
+       ========================================================= */
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById("toastMsg");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.remove("show");
+      }, 2600);
+    }
+
+    /* =========================================================
+       四、畫面渲染函式
+       ========================================================= */
+    function renderTopProgress() {
+      const completedCount = QUESTIONS.filter(q => studentProgress[q.id]?.completed).length;
+      document.getElementById("progressPill").textContent = `${completedCount} / ${QUESTIONS.length} 題`;
+    }
+
+    function renderQuestionGrid() {
+      const grid = document.getElementById("questionGrid");
+      grid.innerHTML = "";
+
+      const filtered = currentCategory === "ALL"
+        ? QUESTIONS
+        : QUESTIONS.filter(q => q.category === currentCategory);
+
+      filtered.forEach((q, idx) => {
+        const rec = studentProgress[q.id];
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "q-btn";
+
+        if (q.id === currentQuestionId) btn.classList.add("active");
+        if (rec?.completed) {
+          btn.classList.add(rec.needsTeacher ? "needs-teacher" : "completed");
+        }
+
+        // 簡短標籤
+        // 「全部」時顯示大題名稱（例：1. 是非題 第 1 題），篩選單一大題時只顯示題號
+        const shortLabel = currentCategory === "ALL"
+          ? q.title.replace(/^[一二三四五六七八九十]+、/, "")
+          : q.title.replace(q.category, "").trim();
+        const prefix = currentCategory === "ALL" ? `${QUESTIONS.indexOf(q) + 1}. ` : "";
+        let statusIcon = "";
+        if (rec?.completed) {
+          statusIcon = rec.needsTeacher ? " ✓ 🙋" : " ✓";
+        }
+
+        btn.textContent = `${prefix}${shortLabel}${statusIcon}`;
+        btn.title = `${q.title}（${q.unit}）`;
+        btn.addEventListener("click", () => {
+          selectQuestion(q.id);
+        });
+
+        grid.appendChild(btn);
+      });
+    }
+
+    function renderLeftCard() {
+      const q = getCurrentQuestion();
+      const rec = getRecord(q.id);
+
+      document.getElementById("qUnitTag").textContent = q.unit;
+      document.getElementById("qTitleText").textContent = q.title;
+
+      // 正解鎖定狀態
+      const lockBox = document.getElementById("answerLockBox");
+      const lockPlaceholder = document.getElementById("lockPlaceholder");
+      const revealContent = document.getElementById("answerRevealContent");
+
+      if (rec.understoodWhy) {
+        lockBox.classList.add("unlocked");
+        lockPlaceholder.style.display = "none";
+        revealContent.style.display = "block";
+        document.getElementById("revealedAnswerText").textContent = q.answer;
+        document.getElementById("revealedReasonText").textContent = q.explanation;
+      } else {
+        lockBox.classList.remove("unlocked");
+        lockPlaceholder.style.display = "flex";
+        revealContent.style.display = "none";
+      }
+
+      // 第一步：審題指引
+      document.getElementById("keywordsBox").textContent = q.keywords;
+      const imgCard = document.getElementById("imageGuideCard");
+      if (q.imageGuide && q.imageGuide.trim() !== "") {
+        imgCard.style.display = "block";
+        document.getElementById("imageGuideText").textContent = q.imageGuide;
+      } else {
+        imgCard.style.display = "none";
+      }
+
+      // 第二步：概念提示（切換題目時預設收合）
+      const conceptBody = document.getElementById("conceptBody");
+      const toggleConceptBtn = document.getElementById("toggleConceptBtn");
+      conceptBody.textContent = q.conceptHint;
+      conceptBody.style.display = "none";
+      toggleConceptBtn.textContent = "💡 我需要概念提示";
+
+      // 狀態儀表板
+      const stageNames = {
+        1: "① 說原本想法",
+        2: "② 一起想一想",
+        3: "③ 說出為什麼",
+        4: "④ 類題挑戰",
+        5: rec.needsTeacher ? "🙋 待老師協助" : "🎉 已完成"
+      };
+      document.getElementById("dashStage").textContent = stageNames[rec.stage] || "① 說原本想法";
+      document.getElementById("dashHints").textContent = `${rec.hintsUsed} / 3 級`;
+      document.getElementById("dashTurns").textContent = `${rec.turns} / 8 回合`;
+    }
+
+    function renderChatArea() {
+      const q = getCurrentQuestion();
+      const rec = getRecord(q.id);
+
+      // 更新頂部四階段進度條
+      document.querySelectorAll("#stageStepper .stage-pill").forEach(pill => {
+        const st = Number(pill.dataset.st);
+        pill.classList.remove("active", "done");
+        if (rec.stage > st || rec.completed) {
+          pill.classList.add("done");
+        } else if (rec.stage === st) {
+          pill.classList.add("active");
+        }
+      });
+
+      // 渲染訊息氣泡
+      const msgContainer = document.getElementById("chatMessages");
+      msgContainer.innerHTML = "";
+
+      rec.messages.forEach(m => {
+        const row = document.createElement("div");
+        row.className = `msg-row ${m.role}`;
+
+        const avatar = document.createElement("div");
+        avatar.className = `avatar ${m.role}`;
+        avatar.textContent = m.role === "ai" ? "🦉" : `${currentSeat || "?"}號`;
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        if (m.tag) {
+          const tagEl = document.createElement("div");
+          tagEl.className = "msg-tag";
+          tagEl.textContent = m.tag;
+          bubble.appendChild(tagEl);
+        }
+
+        const textEl = document.createElement("div");
+        textEl.style.whiteSpace = "pre-line";
+        textEl.textContent = m.text;
+        bubble.appendChild(textEl);
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        msgContainer.appendChild(row);
+      });
+
+      if (isLoading) {
+        const loadingRow = document.createElement("div");
+        loadingRow.className = "msg-row ai";
+        loadingRow.innerHTML = `
+          <div class="avatar ai">🦉</div>
+          <div class="bubble">
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+          </div>
+        `;
+        msgContainer.appendChild(loadingRow);
+      }
+
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+
+      // 階段四：遷移檢核類題面板
+      const transferPanel = document.getElementById("transferPanel");
+      if (rec.stage === 4 && !rec.completed) {
+        transferPanel.style.display = "block";
+        document.getElementById("transferQText").textContent = q.transfer.question;
+        const optWrap = document.getElementById("transferOptions");
+        optWrap.innerHTML = "";
+        q.transfer.options.forEach(optStr => {
+          const optBtn = document.createElement("button");
+          optBtn.type = "button";
+          optBtn.className = "transfer-opt-btn";
+          optBtn.textContent = optStr;
+          optBtn.disabled = isLoading;
+          optBtn.addEventListener("click", () => {
+            handleUserSubmit(optStr);
+          });
+          optWrap.appendChild(optBtn);
+        });
+      } else {
+        transferPanel.style.display = "none";
+      }
+
+      // 完成橫幅
+      const completeBanner = document.getElementById("completeBanner");
+      if (rec.completed) {
+        completeBanner.style.display = "flex";
+      } else {
+        completeBanner.style.display = "none";
+      }
+
+      // 提示按鈕狀態
+      const hintBtn = document.getElementById("requestHintBtn");
+      if (rec.hintsUsed >= 3) {
+        hintBtn.disabled = true;
+        hintBtn.textContent = "💡 已使用全部 3 級提示";
+      } else if (rec.stage === 1) {
+        hintBtn.disabled = true;
+        hintBtn.textContent = "💡 先說說你原本的想法，就能使用提示";
+      } else {
+        hintBtn.disabled = isLoading || rec.completed;
+        hintBtn.textContent = `💡 給我一點提示（下一級：第 ${rec.hintsUsed + 1} 級）`;
+      }
+
+      // 輸入框 Placeholder 依階段引導
+      const chatInput = document.getElementById("chatInput");
+      const placeholders = {
+        1: "輸入你原本選的答案和原因（例如：我原本選○，因為...）",
+        2: "說說你的想法，或回答 AI 教練的問題...",
+        3: "用你自己的話說明：為什麼是這個答案呢？",
+        4: "點選上方類題選項，或輸入你的想法...",
+        5: "這題已經完成囉！你可以繼續發問或點上方下一題。"
+      };
+      chatInput.placeholder = placeholders[rec.stage] || "輸入你的想法...";
+      chatInput.disabled = isLoading;
+      document.getElementById("sendBtn").disabled = isLoading;
+
+      // 快捷協助按鈕（依題型與階段提供親切輔助，不透露答案）
+      renderQuickChips(q, rec);
+    }
+
+    function renderQuickChips(q, rec) {
+      const wrap = document.getElementById("quickChips");
+      wrap.innerHTML = "";
+      if (rec.completed || isLoading) return;
+
+      let chips = [];
+      if (rec.stage === 1) {
+        // 三年級打字較慢：依題型提供「我原本選…，因為」的快速句型（只填入輸入框，不直接送出）
+        const a = q.answer;
+        let opts = [];
+        if (a === "○" || a === "╳") opts = ["○", "╳"];
+        else if (a === "V" || a === "X") opts = ["V", "X"];
+        else if (/^[①②③④]$/.test(a)) opts = ["①", "②", "③", "④"];
+        else if (/^[ㄅㄆㄇㄈ]$/.test(a)) opts = ["ㄅ", "ㄆ", "ㄇ", "ㄈ"];
+        chips = opts.map(o => `我原本寫${o}，因為`);
+        chips.push("我原本沒寫，現在想試試看");
+      } else if (rec.stage === 2) {
+        chips = ["我有點不確定，可以再問簡單一點嗎？"];
+      } else if (rec.stage === 3) {
+        chips = ["因為題目裡提到..."];
+      }
+
+      chips.forEach(txt => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "chip-btn";
+        b.textContent = txt;
+        b.addEventListener("click", () => {
+          const inp = document.getElementById("chatInput");
+          inp.value = txt;
+          inp.focus();
+        });
+        wrap.appendChild(b);
+      });
+    }
+
+    function refreshAllUI() {
+      renderTopProgress();
+      renderQuestionGrid();
+      renderLeftCard();
+      renderChatArea();
+    }
+
+    function selectQuestion(qId) {
+      currentQuestionId = qId;
+      refreshAllUI();
+    }
+
+    /* =========================================================
+       五、提示階梯（一次給一級：喚起經驗 → 聚焦證據 → 接近結論）
+       ========================================================= */
+    function handleRequestHint() {
+      const q = getCurrentQuestion();
+      const rec = getRecord(q.id);
+      if (rec.hintsUsed >= 3 || rec.completed || isLoading) return;
+
+      const level = rec.hintsUsed; // 0, 1, 2
+      const levelNames = [
+        "💡 提示 1（喚起經驗）",
+        "💡 提示 2（聚焦證據）",
+        "💡 提示 3（接近結論）"
+      ];
+
+      rec.hintsUsed += 1;
+      if (rec.stage === 1) {
+        rec.stage = 2;
+      }
+
+      rec.messages.push({
+        role: "ai",
+        tag: levelNames[level],
+        text: q.hints[level]
+      });
+
+      saveProgress();
+      refreshAllUI();
+    }
+
+    /* =========================================================
+       六、Gemini API 串接（含結構化 JSON 回傳與指數退避重試）
+       ========================================================= */
+    function buildSystemPrompt(q, rec) {
+      return `你是一位專精臺灣${CONFIG.gradeText}自然科學（108課綱）的溫柔「AI 陪伴訂正教練」。
+你正在陪伴${CONFIG.gradeText}學生訂正定期評量，學生桌上有紙本考卷。
+
+【本題完整資料庫】
+- 題號：${q.title}
+- 單元：${q.unit}
+- 正解：${q.answer}
+- 核心評量概念：${q.concept}
+- 常見錯誤想法診斷：${q.misconceptions}
+- 審題關鍵字：${q.keywords}
+- 看圖指引：${q.imageGuide || "（本題無附圖）"}
+- 概念提示：${q.conceptHint}
+- 提示階梯：
+  1. ${q.hints[0]}
+  2. ${q.hints[1]}
+  3. ${q.hints[2]}
+- 遷移檢核題（類似題）：
+  題目：${q.transfer.question}
+  選項：${q.transfer.options.join(" / ")}
+  類題正解：${q.transfer.answer}
+  類題理由：${q.transfer.reason}
+- 本題正解理由：${q.explanation}
+
+【目前學習狀態】
+- 目前階段（stage）：${rec.stage}（1=說原本想法, 2=蘇格拉底引導, 3=說出為什麼, 4=遷移檢核, 5=完成）
+- 目前對話回合數（turns）：${rec.turns} / 8
+- 是否已說出合理原因通關（understoodWhy）：${rec.understoodWhy}
+- 學生原本的想法摘要：${rec.studentOriginalSummary || "尚未提供"}
+
+【嚴格教學與對話規則】
+1. 語氣親切溫暖，使用臺灣${CONFIG.gradeText}學生看得懂的簡單詞彙，每次回覆**不超過 3 句話**，且一次**只問一個問題**。
+2. 階段一（stage=1）：學生剛說出原本的答案與想法。
+   - 請將學生的原本想法摘要寫入 studentOriginalSummary。
+   - 對照「常見錯誤想法診斷」理解學生可能的卡關點，但**絕對不能說出「你有迷思」、「你錯了」、「答錯囉」這類否定或生硬字眼**。
+   - 先肯定學生想法中合理或認真觀察的部分，再問一個引導問題，將 nextStage 設為 2。（若學生一開始就說出正解且解釋得非常清楚合理，可直接進入 nextStage=3 請他再確認一次原因）。
+3. 階段二（stage=2）：蘇格拉底式引導。
+   - 輪流使用：請學生說清楚、找證據（課堂實驗或生活經驗）、預測（如果……會怎樣）、找矛盾（這和你剛剛說的一樣嗎）。
+   - **絕對不能在學生自己想出來之前說出正解或選項代號**！
+   - 若學生說「直接告訴我」、「不知道」，溫柔鼓勵他，並改問一個更簡單的生活經驗問題。
+   - 數位畫面沒有考卷原圖，若題目需要看圖，請引導學生對照桌上的紙本考卷。
+   - 當學生終於說出正確答案時，先大力稱讚他找對了，但還不能公布解析，將 nextStage 設為 3，並追問：「太棒了！那你能不能用自己的話說說看，為什麼是這個答案呢？」
+4. 階段三（stage=3）：說出為什麼。
+   - 檢查學生是否用自己的話說出合理原因（不能只重複選項代號或說不知道）。
+   - 若理由還不夠清楚，溫柔追問一句引導他說完整。
+   - 若理由合理，將 understoodWhy 設為 true、記錄 studentCurrentSummary、nextStage 設為 4，並在 reply 中給予肯定、附上「正解理由」與一句話概念總結，最後問：「觀念通了！要不要挑戰下面這題類似題，確認自己真的懂了？」
+5. 階段四（stage=4）：遷移檢核（畫面下方已自動顯示題庫裡的類似題按鈕，**絕對不要自己另外出題**）。
+   - 若學生答對類題（${q.transfer.answer}），將 transferResult 設為「通過」、nextStage 設為 5，讚美他並說明類題理由（${q.transfer.reason}）。
+   - 若學生答錯類題，**不要直接說出類題答案**，維持 nextStage=4，給一句簡短提示讓他再選一次。
+6. 只能依據題庫中的正解與概念判斷，不能自行更改答案。若學生問到題庫以外的問題，請他記下來問老師。`;
+    }
+
+    function setAiMode(online) {
+      const badge = document.getElementById("aiModeBadge");
+      if (!badge) return;
+      if (online) {
+        badge.textContent = "🟢 AI 教練連線中";
+        badge.style.background = "rgba(255,255,255,0.18)";
+      } else {
+        badge.textContent = "🟠 離線備援模式（AI 未連線）";
+        badge.style.background = "#b45309";
+      }
+    }
+
+    async function callGeminiSocratic(q, rec, userText) {
+      // Gemini 多輪對話需「user / model 交替」且由 user 開頭：
+      // 合併連續同角色訊息（例如 AI 開場＋提示按鈕訊息），並在開頭補一句 user。
+      const recentMsgs = [];
+      rec.messages.slice(-12).forEach(m => {
+        const role = m.role === "ai" ? "model" : "user";
+        const last = recentMsgs[recentMsgs.length - 1];
+        if (last && last.role === role) {
+          last.parts[0].text += "\n" + m.text;
+        } else {
+          recentMsgs.push({ role, parts: [{ text: m.text }] });
+        }
+      });
+      if (recentMsgs.length && recentMsgs[0].role === "model") {
+        recentMsgs.unshift({ role: "user", parts: [{ text: "（學生開始訂正這一題）" }] });
+      }
+
+      const payload = {
+        contents: recentMsgs,
+        systemInstruction: {
+          parts: [{ text: buildSystemPrompt(q, rec) }]
+        },
+        generationConfig: {
+          temperature: 0.4,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              reply: { type: "STRING" },
+              nextStage: { type: "INTEGER" },
+              understoodWhy: { type: "BOOLEAN" },
+              transferResult: { type: "STRING" },
+              studentOriginalSummary: { type: "STRING" },
+              studentCurrentSummary: { type: "STRING" }
+            },
+            required: [
+              "reply",
+              "nextStage",
+              "understoodWhy",
+              "transferResult",
+              "studentOriginalSummary",
+              "studentCurrentSummary"
+            ]
+          }
+        }
+      };
+
+      const delays = [800, 1600, 3200];
+      for (let attempt = 0; attempt <= delays.length; attempt++) {
+        try {
+          const response = await fetch(GEMINI_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!rawText) throw new Error("Empty candidate");
+
+          const parsed = JSON.parse(rawText);
+          setAiMode(true);
+          return parsed;
+        } catch (err) {
+          if (attempt === delays.length) {
+            // AI 無法連線時改用離線備援引擎，但「一定要讓老師與學生看得到」
+            console.warn("[訂正小幫手] Gemini 呼叫失敗，改用離線備援：", err);
+            setAiMode(false);
+            rec.offlineUsed = true;
+            return runOfflineSocraticEngine(q, rec, userText);
+          }
+          await new Promise(res => setTimeout(res, delays[attempt]));
+        }
+      }
+    }
+
+    /* =========================================================
+       七、內建離線／備援蘇格拉底引導引擎（確保 100% 穩定可用）
+       ========================================================= */
+    function normalizeSymbol(str) {
+      return (str || "")
+        .replace(/O|o|0|對|打勾|勾/g, "○")
+        .replace(/X|x|×|錯|打叉|叉/g, "╳")
+        .replace(/1|①/g, "①")
+        .replace(/2|②/g, "②")
+        .replace(/3|③/g, "③")
+        .replace(/4|④/g, "④")
+        .replace(/V|v/g, "V")
+        .trim();
+    }
+
+    function checkMatchesAnswer(userText, q) {
+      const normUser = normalizeSymbol(userText);
+      const ans = q.answer;
+
+
+      // 注意：否定詞要用「原始文字」判斷，否則「不對」會先被轉成「不○」而誤判為答對
+      const raw = userText || "";
+      const saysNo = /(不對|不正確|不合理|錯|╳|×|打叉|X|x)/.test(raw);
+      const saysYes = /(○|對|正確|沒錯|合理|打勾|V|v|O|o)/.test(raw);
+      if (ans === "○" || ans === "V") {
+        return saysYes && !saysNo;
+      }
+      if (ans === "╳" || ans === "X") {
+        return saysNo;
+      }
+      // ①②③④ 或 ㄅㄆㄇㄈ
+      return normUser.includes(ans);
+    }
+
+    function runOfflineSocraticEngine(q, rec, userText) {
+      const clean = userText.trim();
+      const askDirect = /(直接告訴|給我答案|不知道|不會|想不出來|放棄)/.test(clean);
+      const matchedAns = checkMatchesAnswer(clean, q);
+
+      // 階段一：記錄原本想法並啟動引導
+      if (rec.stage === 1) {
+        const origSummary = clean.length > 40 ? clean.slice(0, 40) + "..." : clean;
+        if (matchedAns && clean.length >= 8 && !askDirect) {
+          return {
+            reply: `謝謝你分享原本的想法！你已經注意到關鍵的地方了，那你能不能再用自己的話說清楚，為什麼是這個答案呢？`,
+            nextStage: 3,
+            understoodWhy: false,
+            transferResult: "",
+            studentOriginalSummary: origSummary,
+            studentCurrentSummary: ""
+          };
+        }
+        const firstPrompt = q.hints[0] || `我們一起看看題目裡的關鍵字 ${q.keywords}，你在生活中有看過類似的現象嗎？`;
+        return {
+          reply: `謝謝你把想法說出來，願意先觀察思考很棒喔！我們一起再想一想：${firstPrompt}`,
+          nextStage: 2,
+          understoodWhy: false,
+          transferResult: "",
+          studentOriginalSummary: origSummary,
+          studentCurrentSummary: ""
+        };
+      }
+
+      // 階段二：蘇格拉底式引導（不透露答案、一次一問、不超過3句）
+      if (rec.stage === 2) {
+        if (askDirect) {
+          const easyHint = q.hints[Math.min(rec.hintsUsed, 2)];
+          return {
+            reply: `沒關係，我們慢慢來，你可以自己想出來的！先回答這個小問題就好：${easyHint}`,
+            nextStage: 2,
+            understoodWhy: false,
+            transferResult: "",
+            studentOriginalSummary: rec.studentOriginalSummary,
+            studentCurrentSummary: ""
+          };
+        }
+
+        if (matchedAns) {
+          return {
+            reply: `太棒了，你找到正確的方向囉！不過先別急，你能不能用自己的話說說看，為什麼是這個答案呢？`,
+            nextStage: 3,
+            understoodWhy: false,
+            transferResult: "",
+            studentOriginalSummary: rec.studentOriginalSummary,
+            studentCurrentSummary: ""
+          };
+        }
+
+        const styles = [
+          `你很認真在思考喔！如果我們再看一次題目的關鍵字 ${q.keywords}，${q.hints[0]}`,
+          `這個方向很有趣，我們找找看證據！${q.hints[1]}`,
+          `我們把剛才的線索連起來想想看：${q.hints[2]}`
+        ];
+        const pick = styles[rec.turns % styles.length];
+        return {
+          reply: pick,
+          nextStage: 2,
+          understoodWhy: false,
+          transferResult: "",
+          studentOriginalSummary: rec.studentOriginalSummary,
+          studentCurrentSummary: ""
+        };
+      }
+
+      // 階段三：請學生用自己的話說出「為什麼」
+      if (rec.stage === 3) {
+        // 離線模式無法真正判斷理由是否正確，只檢查有沒有寫出一句完整的話，並在學習卡標記「離線判斷」
+        const hasReason = clean.length >= 8 && !askDirect && /(因為|所以|會|是)/.test(clean);
+        if (!hasReason) {
+          return {
+            reply: `你已經選對答案了，好厲害！再多告訴我一點點，用你自己的話說明「為什麼」會這樣呢？`,
+            nextStage: 3,
+            understoodWhy: false,
+            transferResult: "",
+            studentOriginalSummary: rec.studentOriginalSummary,
+            studentCurrentSummary: ""
+          };
+        }
+
+        const currSummary = clean.length > 45 ? clean.slice(0, 45) + "..." : clean;
+        return {
+          reply: `說得太清楚了，完全通關！\n📖【解析】${q.explanation}\n✨ 觀念通了！要不要挑戰下面這題類似題，確認自己真的懂了？`,
+          nextStage: 4,
+          understoodWhy: true,
+          transferResult: "",
+          studentOriginalSummary: rec.studentOriginalSummary,
+          studentCurrentSummary: currSummary
+        };
+      }
+
+      // 階段四：遷移檢核類題挑戰
+      if (rec.stage === 4) {
+        const norm = normalizeSymbol(clean);
+        const tAns = q.transfer.answer;
+        const optIdx = ["①", "②", "③", "④"].indexOf(tAns);
+        const optText = optIdx >= 0 ? q.transfer.options[optIdx].replace(/^[①②③④]/, "") : "";
+
+        if (norm.includes(tAns) || (optText && clean.includes(optText))) {
+          return {
+            reply: `🎉 恭喜你答對類似題了！${q.transfer.reason} 你已經把這個自然觀念學起來囉！`,
+            nextStage: 5,
+            understoodWhy: true,
+            transferResult: "通過",
+            studentOriginalSummary: rec.studentOriginalSummary,
+            studentCurrentSummary: rec.studentCurrentSummary
+          };
+        } else {
+          return {
+            reply: `差一點點喔，再仔細讀一次類似題的題目！想想看「${q.concept}」，再點選一次你覺得最合理的選項吧！`,
+            nextStage: 4,
+            understoodWhy: true,
+            transferResult: "",
+            studentOriginalSummary: rec.studentOriginalSummary,
+            studentCurrentSummary: rec.studentCurrentSummary
+          };
+        }
+      }
+
+      // 階段五：已完成後的延伸提問
+      return {
+        reply: `這題你已經訂正完成囉！如果還有其他好奇的問題，可以記在紙本考卷旁邊去請教自然老師喔！`,
+        nextStage: 5,
+        understoodWhy: rec.understoodWhy,
+        transferResult: rec.transferResult,
+        studentOriginalSummary: rec.studentOriginalSummary,
+        studentCurrentSummary: rec.studentCurrentSummary
+      };
+    }
+
+    /* =========================================================
+       八、處理學生送出訊息與五階段狀態轉移
+       ========================================================= */
+    async function handleUserSubmit(rawText) {
+      const text = (rawText || "").trim();
+      if (!text || isLoading) return;
+
+      const q = getCurrentQuestion();
+      const rec = getRecord(q.id);
+
+      // 加入學生訊息並增加回合數
+      rec.messages.push({ role: "user", text });
+      if (!rec.completed) {
+        rec.turns += 1;
+      }
+
+      document.getElementById("chatInput").value = "";
+      isLoading = true;
+      refreshAllUI();
+
+      // 檢查是否已達 8 回合上限且尚未完成 -> 進入階段五（待老師協助）
+      if (!rec.completed && rec.turns >= 8 && rec.stage < 4) {
+        isLoading = false;
+        rec.stage = 5;
+        rec.needsTeacher = true;
+        rec.completed = true;
+        if (!rec.studentCurrentSummary) {
+          rec.studentCurrentSummary = "已練習 8 回合，待請教老師釐清";
+        }
+        rec.messages.push({
+          role: "ai",
+          tag: "🙋 標記：待老師協助",
+          text: "你已經非常努力思考了！這題我們先做個記號，把這題帶去問老師，老師一定會幫你弄懂喔！"
+        });
+        saveProgress();
+        refreshAllUI();
+        checkAllCompletedCelebration();
+        return;
+      }
+
+      // 呼叫 Gemini（或無縫切換離線蘇格拉底引擎）
+      const aiRes = await callGeminiSocratic(q, rec, text);
+      isLoading = false;
+
+      // 同步狀態
+      if (aiRes.studentOriginalSummary && !rec.studentOriginalSummary) {
+        rec.studentOriginalSummary = aiRes.studentOriginalSummary;
+      }
+      if (aiRes.studentCurrentSummary) {
+        rec.studentCurrentSummary = aiRes.studentCurrentSummary;
+      }
+      const prevStage = rec.stage;
+      // 階段一次最多前進一階（階段一可直接跳到三），避免 AI 誤判讓學生跳過「說出為什麼」或類題
+      const maxNext = prevStage === 1 ? 3 : prevStage + 1;
+      const validStage = Math.min(maxNext, 5, Math.max(prevStage, Number(aiRes.nextStage) || prevStage));
+
+      // 只有在「說出為什麼」階段才能解鎖正解；只有在類題階段才能記錄「通過」
+      if (aiRes.understoodWhy && prevStage === 3 && validStage >= 4) {
+        rec.understoodWhy = true;
+      }
+      if (aiRes.transferResult === "通過" && prevStage === 4) {
+        rec.transferResult = "通過";
+      }
+      rec.stage = validStage;
+
+      if (rec.stage === 5 && rec.transferResult !== "通過") {
+        rec.stage = 4; // 沒有真的答對類題，不能直接完成
+      }
+      if (rec.transferResult === "通過") {
+        rec.stage = 5;
+        rec.completed = true;
+      }
+
+      // 再次檢查：第 8 回合仍未「說出為什麼」才標記待老師協助（已通關、只是類題答錯不算）
+      if (!rec.completed && !rec.understoodWhy && rec.turns >= 8) {
+        rec.stage = 5;
+        rec.needsTeacher = true;
+        rec.completed = true;
+        if (!rec.studentCurrentSummary) {
+          rec.studentCurrentSummary = "已練習 8 回合，待請教老師釐清";
+        }
+        rec.messages.push({
+          role: "ai",
+          tag: "🙋 標記：待老師協助",
+          text: "你已經非常努力思考了！這題我們先做個記號，把這題帶去問老師，老師一定會幫你弄懂喔！"
+        });
+      } else {
+        const stageTags = {
+          1: "階段一｜說出原本的想法",
+          2: "階段二｜蘇格拉底引導",
+          3: "階段三｜說出為什麼",
+          4: "階段四｜遷移檢核",
+          5: "階段五｜訂正完成"
+        };
+        rec.messages.push({
+          role: "ai",
+          tag: stageTags[rec.stage] || "",
+          text: aiRes.reply
+        });
+      }
+
+      saveProgress();
+      refreshAllUI();
+      checkAllCompletedCelebration();
+    }
+
+    function handleSkipTransfer() {
+      const q = getCurrentQuestion();
+      const rec = getRecord(q.id);
+      if (rec.stage !== 4 || rec.completed) return;
+
+      rec.transferResult = "略過";
+      rec.stage = 5;
+      rec.completed = true;
+      rec.messages.push({
+        role: "ai",
+        tag: "階段五｜訂正完成",
+        text: "好的，這題的核心觀念你已經想通囉！可以先點上方前往下一題繼續訂正。"
+      });
+
+      saveProgress();
+      refreshAllUI();
+      checkAllCompletedCelebration();
+    }
+
+    function checkAllCompletedCelebration() {
+      const allDone = QUESTIONS.every(q => studentProgress[q.id]?.completed);
+      if (allDone) {
+        showToast(`🏆 太棒了！全部 ${QUESTIONS.length} 題都訂正完成了！開啟學習卡看看吧！`);
+        setTimeout(() => openLearningCard(), 900);
+      }
+    }
+
+    /* =========================================================
+       九、我的訂正學習卡（統計、渲染、複製、列印）
+       ========================================================= */
+    function openLearningCard() {
+      const seatLabel = currentSeat ? `${currentSeat} 號` : "＿＿號";
+      document.getElementById("learningCardTitle").textContent =
+        `座號：${seatLabel}｜${CONFIG.cardTitle}`;
+
+      let completedCnt = 0;
+      let understoodCnt = 0;
+      let transferPassCnt = 0;
+      let needsTeacherCnt = 0;
+
+      QUESTIONS.forEach(q => {
+        const r = studentProgress[q.id];
+        if (r?.completed) completedCnt++;
+        if (r?.understoodWhy && !r?.needsTeacher) understoodCnt++;
+        if (r?.transferResult === "通過") transferPassCnt++;
+        if (r?.needsTeacher) needsTeacherCnt++;
+      });
+
+      document.getElementById("sumCompleted").textContent = `${completedCnt} / ${QUESTIONS.length}`;
+      document.getElementById("sumUnderstood").textContent = `${understoodCnt} 題`;
+      document.getElementById("sumTransferPass").textContent = `${transferPassCnt} 題`;
+      document.getElementById("sumNeedsTeacher").textContent = `${needsTeacherCnt} 題`;
+
+      renderReportTable();
+      document.getElementById("learningCardModal").classList.add("open");
+    }
+
+    function renderReportTable() {
+      const onlyPracticed = document.getElementById("filterPracticedOnly").checked;
+      const tbody = document.getElementById("reportTableBody");
+      tbody.innerHTML = "";
+
+      QUESTIONS.forEach(q => {
+        const r = studentProgress[q.id];
+        const hasPractice = r && (r.turns > 0 || r.hintsUsed > 0 || r.completed);
+        if (onlyPracticed && !hasPractice) return;
+
+        const tr = document.createElement("tr");
+
+        const origText = r?.studentOriginalSummary || "—";
+        const currText = r?.studentCurrentSummary || (r?.completed ? "已理解概念" : "—");
+        const hintsText = hasPractice ? `${r.hintsUsed} 級` : "—";
+
+        let transferHtml = `<span class="badge-none">尚未挑戰</span>`;
+        if (r?.transferResult === "通過") {
+          transferHtml = `<span class="badge-pass">✓ 通過</span>`;
+        } else if (r?.transferResult === "略過") {
+          transferHtml = `<span class="badge-none">已略過</span>`;
+        }
+
+        let teacherHtml = `<span class="badge-none">不需要</span>`;
+        if (r?.needsTeacher) {
+          teacherHtml = `<span class="badge-help">🙋 待老師協助</span>`;
+        } else if (r?.completed) {
+          teacherHtml = `<span class="badge-pass">已自主完成</span>`;
+        }
+        if (r?.offlineUsed) {
+          teacherHtml += `<br><span class="badge-help" title="AI 未連線，由簡易規則判斷，建議老師抽查">⚠ 離線判斷</span>`;
+        }
+
+        tr.innerHTML = `
+          <td><strong>${q.title}</strong><br><span style="font-size:0.8rem;color:#6b7280;">${q.unit}</span></td>
+          <td>${escapeHtml(origText)}</td>
+          <td>${escapeHtml(currText)}</td>
+          <td style="white-space:nowrap;">${hintsText}</td>
+          <td style="white-space:nowrap;">${transferHtml}</td>
+          <td style="white-space:nowrap;">${teacherHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (tbody.children.length === 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.innerHTML = `<td colspan="6" style="text-align:center;padding:24px;color:#6b7280;">目前還沒有開始練習的題目喔！快去選一題跟 AI 教練聊聊吧！</td>`;
+        tbody.appendChild(emptyRow);
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function copyReportText() {
+      const seatLabel = currentSeat ? `${currentSeat} 號` : "未填座號";
+      const lines = [
+        `【座號：${seatLabel}｜${CONFIG.cardTitle}】`,
+        `--------------------------------------------------`
+      ];
+
+      QUESTIONS.forEach(q => {
+        const r = studentProgress[q.id];
+        if (!r || (r.turns === 0 && r.hintsUsed === 0 && !r.completed)) return;
+        lines.push(
+          `● ${q.title}（${q.unit}）\n` +
+          `  - 原本想法：${r.studentOriginalSummary || "無"}\n` +
+          `  - 現在想法：${r.studentCurrentSummary || "無"}\n` +
+          `  - 使用提示：${r.hintsUsed} 級｜類題：${r.transferResult || "未挑戰"}｜老師協助：${r.needsTeacher ? "需要🙋" : "不需要"}${r.offlineUsed ? "｜⚠ 離線判斷" : ""}`
+        );
+      });
+
+      if (lines.length === 2) {
+        lines.push("（尚無練習紀錄）");
+      }
+
+      const textarea = document.createElement("textarea");
+      textarea.value = lines.join("\n");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast("📋 已複製訂正學習紀錄到剪貼簿！");
+      } catch (e) {
+        showToast("⚠️ 複製失敗，請改用列印或截圖保存");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    /* =========================================================
+       十、事件綁定與初始化
+       ========================================================= */
+    function setSeatNumber(val) {
+      const cleaned = String(val || "").replace(/[^\d]/g, "");
+      if (!cleaned) {
+        showToast("請輸入 1～60 之間的座號喔！");
+        return false;
+      }
+      currentSeat = cleaned;
+      localStorage.setItem(CONFIG.storageId + "_current_seat", currentSeat);
+      document.getElementById("seatInput").value = currentSeat;
+      loadProgressForSeat(currentSeat);
+      refreshAllUI();
+      showToast(`✅ 已切換至座號 ${currentSeat} 號`);
+      return true;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // 檢查是否已有座號
+      if (currentSeat) {
+        document.getElementById("seatInput").value = currentSeat;
+        loadProgressForSeat(currentSeat);
+      } else {
+        document.getElementById("welcomeModal").classList.add("open");
+      }
+
+      // 歡迎彈窗確認座號
+      document.getElementById("startAppBtn").addEventListener("click", () => {
+        const val = document.getElementById("welcomeSeatInput").value;
+        if (setSeatNumber(val)) {
+          document.getElementById("welcomeModal").classList.remove("open");
+        }
+      });
+
+      // 頂部座號切換
+      document.getElementById("saveSeatBtn").addEventListener("click", () => {
+        const val = document.getElementById("seatInput").value;
+        setSeatNumber(val);
+      });
+
+      // 依 CONFIG 設定標題
+      document.title = CONFIG.appTitle.replace(/^[^\u4e00-\u9fffA-Za-z0-9]+\s*/, "");
+      document.getElementById("appTitleText").textContent = CONFIG.appTitle;
+      document.getElementById("appBadgeText").textContent = CONFIG.badge;
+
+      // 依題庫自動產生大題分類按鈕
+      const tabWrap = document.getElementById("categoryTabs");
+      const toggleBtnEl = document.getElementById("toggleNavGridBtn");
+      const cats = [...new Set(QUESTIONS.map(q => q.category))];
+      [["ALL", `全部 (${QUESTIONS.length})`], ...cats.map(c => [c, `${c} (${QUESTIONS.filter(q => q.category === c).length})`])]
+        .forEach(([cat, label], i) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "cat-tab" + (i === 0 ? " active" : "");
+          b.dataset.cat = cat;
+          b.textContent = label;
+          tabWrap.insertBefore(b, toggleBtnEl);
+        });
+
+      // 大題分類篩選按鈕
+      document.querySelectorAll("#categoryTabs .cat-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll("#categoryTabs .cat-tab").forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+          currentCategory = tab.dataset.cat;
+          renderQuestionGrid();
+        });
+      });
+
+      // 收合／展開題號列
+      const toggleNavBtn = document.getElementById("toggleNavGridBtn");
+      const qGrid = document.getElementById("questionGrid");
+      toggleNavBtn.addEventListener("click", () => {
+        const isCollapsed = qGrid.classList.toggle("collapsed");
+        toggleNavBtn.textContent = isCollapsed ? "展開全部題號 ▼" : "收合題號列 ▲";
+      });
+
+      // 第二步：概念提示摺疊切換
+      const toggleConceptBtn = document.getElementById("toggleConceptBtn");
+      const conceptBody = document.getElementById("conceptBody");
+      toggleConceptBtn.addEventListener("click", () => {
+        const isHidden = conceptBody.style.display === "none";
+        conceptBody.style.display = isHidden ? "block" : "none";
+        toggleConceptBtn.textContent = isHidden ? "🔼 收起概念提示" : "💡 我需要概念提示";
+      });
+
+      // 給我一點提示按鈕
+      document.getElementById("requestHintBtn").addEventListener("click", handleRequestHint);
+
+      // 對話送出表單
+      document.getElementById("chatForm").addEventListener("submit", e => {
+        e.preventDefault();
+        const val = document.getElementById("chatInput").value;
+        handleUserSubmit(val);
+      });
+
+      // 階段四略過類題挑戰
+      document.getElementById("skipTransferBtn").addEventListener("click", handleSkipTransfer);
+
+      // 前往下一題按鈕
+      document.getElementById("nextQuestionBtn").addEventListener("click", () => {
+        const idx = QUESTIONS.findIndex(item => item.id === currentQuestionId);
+        // 優先找下一題尚未完成的題目，若後面都完成則前往下一號
+        let nextQ = QUESTIONS.slice(idx + 1).find(item => !studentProgress[item.id]?.completed);
+        if (!nextQ) {
+          nextQ = QUESTIONS[(idx + 1) % QUESTIONS.length];
+        }
+        // 若目前篩選看不到該題，切回全部
+        if (currentCategory !== "ALL" && nextQ.category !== currentCategory) {
+          currentCategory = "ALL";
+          document.querySelectorAll("#categoryTabs .cat-tab").forEach(t => {
+            t.classList.toggle("active", t.dataset.cat === "ALL");
+          });
+        }
+        selectQuestion(nextQ.id);
+      });
+
+      // 我的訂正學習卡彈窗控制
+      document.getElementById("openCardBtn").addEventListener("click", openLearningCard);
+      document.getElementById("closeCardModalBtn").addEventListener("click", () => {
+        document.getElementById("learningCardModal").classList.remove("open");
+      });
+      document.getElementById("filterPracticedOnly").addEventListener("change", renderReportTable);
+      document.getElementById("copyReportBtn").addEventListener("click", copyReportText);
+      document.getElementById("printReportBtn").addEventListener("click", () => {
+        window.print();
+      });
+
+      // 清除紀錄自訂確認框
+      document.getElementById("resetProgressBtn").addEventListener("click", () => {
+        document.getElementById("confirmResetModal").classList.add("open");
+      });
+      document.getElementById("cancelResetBtn").addEventListener("click", () => {
+        document.getElementById("confirmResetModal").classList.remove("open");
+      });
+      document.getElementById("confirmResetYesBtn").addEventListener("click", () => {
+        studentProgress = {};
+        saveProgress();
+        document.getElementById("confirmResetModal").classList.remove("open");
+        document.getElementById("learningCardModal").classList.remove("open");
+        refreshAllUI();
+        showToast("🗑️ 已清除本座號的所有訂正紀錄");
+      });
+
+      // 初始渲染
+      refreshAllUI();
+    });
+  </script>
+</body>
+</html>
